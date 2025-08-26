@@ -52,6 +52,7 @@ void Game::CleanUp()
 	}
 
 	SafeDelete(menuLevel);
+	SafeDelete(astarLevel);
 	mainLevel = nullptr;
 
 	loadedLevels.clear();

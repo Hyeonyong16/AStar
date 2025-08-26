@@ -41,6 +41,13 @@ GridMap::~GridMap()
 			SafeDelete(grid[i][j]);
 		}
 	}
+
+	int i = 0;
+	for (Node* node : purposeNode)
+	{
+		//SafeDelete(node);
+	}
+	purposeNode.clear();
 }
 
 void GridMap::BeginPlay()
@@ -95,6 +102,18 @@ void GridMap::Render()
 					, std::to_string(*(grid[i][j])).c_str()
 					, Color::Red
 				);
+			}
+
+			// ¿­¸° ³ëµå
+			else if (*(grid[i][j]) == 20 && isDrawList == true)
+			{
+				Engine::Get().WriteToBuffer(Vector2(j + 1, i + 1), "@", Color::Green);
+			}
+
+			// ´ÝÈù ³ëµå
+			else if (*(grid[i][j]) == 21 && isDrawList == true)
+			{
+				Engine::Get().WriteToBuffer(Vector2(j + 1, i + 1), "@", Color::White);
 			}
 		}
 	}
@@ -190,4 +209,32 @@ void GridMap::SetPurposeNode(Vector2 pos)
 void GridMap::PurPoseNodeReset()
 {
 
+}
+
+void GridMap::ResetSettings(bool isSafeDelete)
+{
+	for (int i = 0; i < height; ++i)
+	{
+		for (int j = 0; j < width; ++j)
+		{
+			if (*grid[i][j] == 20 || *grid[i][j] == 21)
+			{
+				*grid[i][j] = 0;
+			}
+		}
+	}
+
+	for (Node* node : purposeNode)
+	{
+		*grid[node->position.y][node->position.x] = 0;
+		if(!isSafeDelete)
+			SafeDelete(node);
+	}
+
+	purposeNode.clear();
+
+	isNodeChange = true;
+	isDrawList = false;
+
+	
 }

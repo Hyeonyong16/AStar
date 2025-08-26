@@ -1,5 +1,6 @@
 #include "AStar.h"
 #include "Node.h"
+#include "Core/Engine.h"
 
 #include <Windows.h>
 
@@ -23,14 +24,18 @@ AStar::~AStar()
 	closedList.clear();
 }
 
-std::vector<Node*> AStar::FindPath(Node* startNode, Node* goalNode, std::vector<std::vector<int>>& grid)
+std::vector<Node*> AStar::FindPath(Node* startNode, Node* goalNode, std::vector<std::vector<int*>>& grid)
 {
 	// 시작 노드 / 목표 노드 저장
 	this->startNode = startNode;
 	this->goalNode = goalNode;
 
 	// 시작 노드를 열린 목록(openlist)에 저장
-	openList.emplace_back(startNode);
+	if(isAddStartNode == false)
+	{
+		openList.emplace_back(startNode);
+		isAddStartNode = true;
+	}
 
 	// 상하좌우, 대각선 방향 및 비용
 	std::vector<Direction> directions = {
@@ -44,7 +49,8 @@ std::vector<Node*> AStar::FindPath(Node* startNode, Node* goalNode, std::vector<
 	};
 
 	// 방문
-	while (!openList.empty())
+	//while (!openList.empty())
+	if(!openList.empty())
 	{
 		// 가장 비용이 작은 노드 선택 (선형 탐색으로 검색)
 		// 최적화 기능 -> 가장 작은 값을 빠르게 찾을 수 있도록
@@ -61,12 +67,12 @@ std::vector<Node*> AStar::FindPath(Node* startNode, Node* goalNode, std::vector<
 		// fCost 가 가장 낮은 노드를 현재 노드로 설정
 		Node* currentNode = lowestNode;
 
-		DisplayCurNode(currentNode);
-
 		// 현재 노드가 목표 노드인지 확인
 		if (IsDestination(currentNode))
 		{
 			// 목표 노드라면, 지금까지의 경로를 계산해서 반환
+			isFindDestination = true;
+			closedList.emplace_back(goalNode);
 			return ConstructPath(currentNode);
 		}
 
@@ -78,7 +84,9 @@ std::vector<Node*> AStar::FindPath(Node* startNode, Node* goalNode, std::vector<
 			{
 				// iterator 를 활용해 동적 배열에서 노드 제거
 				openList.erase(openList.begin() + i);
-				grid[currentNode->position.y][currentNode->position.x] = 6;
+
+				// 닫힌 리스트 == 21
+				*grid[currentNode->position.y][currentNode->position.x] = 21;
 				break;
 			}
 		}
@@ -99,7 +107,7 @@ std::vector<Node*> AStar::FindPath(Node* startNode, Node* goalNode, std::vector<
 		// 방문 했으면 아래 단계 건너뛰기
 		if (isNodeInList)
 		{
-			continue;
+			return std::vector<Node*>();
 		}
 
 		// 목록에 추가
@@ -120,8 +128,8 @@ std::vector<Node*> AStar::FindPath(Node* startNode, Node* goalNode, std::vector<
 			}
 
 			// (옵션) 장애물인지 확인
-			// 값이 1이면 장애물이라고 약속
-			if (grid[newY][newX] == 1)
+			// 값이 -1이면 장애물이라고 약속
+			if (*grid[newY][newX] == -1)
 			{
 				continue;
 			}
@@ -160,7 +168,7 @@ std::vector<Node*> AStar::FindPath(Node* startNode, Node* goalNode, std::vector<
 				|| openListNode->fCost > neighborNode->fCost)
 			{
 				// 오픈리스트 = 5
-				grid[newY][newX] = 5;
+				*grid[newY][newX] = 20;
 
 				openList.emplace_back(neighborNode);
 			}
@@ -169,7 +177,7 @@ std::vector<Node*> AStar::FindPath(Node* startNode, Node* goalNode, std::vector<
 				SafeDelete(neighborNode);
 			}
 
-			DisplayGrid(grid);
+			//DisplayGrid(grid);
 			//DisplayClosedList();
 
 			/*int delay = (int)(0.1f * 1000);
@@ -180,7 +188,7 @@ std::vector<Node*> AStar::FindPath(Node* startNode, Node* goalNode, std::vector<
 	return std::vector<Node*>();
 }
 
-void AStar::DisplayGridWithPath(std::vector<std::vector<int>>& grid, const std::vector<Node*>& path)
+void AStar::DisplayGridWithPath(std::vector<std::vector<int*>>& grid, const std::vector<Node*>& path)
 {
 	static COORD position = { 0, 2 };
 	static HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -194,7 +202,7 @@ void AStar::DisplayGridWithPath(std::vector<std::vector<int>>& grid, const std::
 	{
 		for (int x = 0; x < grid[0].size(); ++x)
 		{
-			int& value = grid[y][x];
+			int& value = *grid[y][x];
 			if (value == 2 || value == 3 || value == 5 || value == 6)
 			{
 				value = 0;
@@ -208,7 +216,7 @@ void AStar::DisplayGridWithPath(std::vector<std::vector<int>>& grid, const std::
 		for (int x = 0; x < grid[0].size(); ++x)
 		{
 			// 장애물.
-			if (grid[y][x] == 1)
+			if (*grid[y][x] == 1)
 			{
 				SetConsoleTextAttribute(handle, white);
 				std::cout << "1 ";
@@ -216,7 +224,7 @@ void AStar::DisplayGridWithPath(std::vector<std::vector<int>>& grid, const std::
 
 
 			// 빈 공간.
-			else if (grid[y][x] == 0)
+			else if (*grid[y][x] == 0)
 			{
 				SetConsoleTextAttribute(handle, white);
 				std::cout << "0 ";
@@ -238,6 +246,27 @@ void AStar::DisplayGridWithPath(std::vector<std::vector<int>>& grid, const std::
 		/*int delay = static_cast<int>(0.05f * 1000);
 		Sleep(delay);*/
 	}
+}
+
+void AStar::ResetAStar()
+{
+	for (Node* node : openList)
+	{
+		SafeDelete(node);
+	}
+	openList.clear();
+
+	for (Node* node : closedList)
+	{
+		SafeDelete(node);
+	}
+	closedList.clear();
+
+	isAddStartNode = false;
+	isFindDestination = false;
+
+	startNode = nullptr;
+	goalNode = nullptr;
 }
 
 std::vector<Node*> AStar::ConstructPath(Node* goalNode)
@@ -266,7 +295,7 @@ bool AStar::IsDestination(const Node* node)
 	return *node == *goalNode;
 }
 
-bool AStar::IsInRange(int x, int y, const std::vector<std::vector<int>>& grid)
+bool AStar::IsInRange(int x, int y, const std::vector<std::vector<int*>>& grid)
 {
 	// x, y 범위가 벗어나면 false
 	if (x < 0 || y < 0 || x >= (int)grid[0].size() || y >= (int)grid.size())
@@ -330,82 +359,3 @@ float AStar::CalculateHeuristic(Node* currentNode, Node* goalNode)
 	// 대각선 길이 구하기
 	return (float)std::sqrt(diff.x * diff.x + diff.y * diff.y);
 }
-
-void AStar::DisplayGrid(std::vector<std::vector<int>>& grid)
-{
-	static COORD position = { 0, 2 };
-	static HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
-	SetConsoleCursorPosition(handle, position);
-
-	int white = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE;
-	int wow = FOREGROUND_RED | FOREGROUND_GREEN;
-	int green = FOREGROUND_GREEN;
-
-	for (int y = 0; y < grid.size(); ++y)
-	{
-		for (int x = 0; x < grid[0].size(); ++x)
-		{
-			// 시작 위치.
-			if (grid[y][x] == 2)
-			{
-				SetConsoleTextAttribute(handle, FOREGROUND_RED);
-				std::cout << "S ";
-			}
-
-			// 목표 위치.
-			if (grid[y][x] == 3)
-			{
-				SetConsoleTextAttribute(handle, FOREGROUND_RED);
-				std::cout << "G ";
-			}
-
-			// 장애물.
-			if (grid[y][x] == 1)
-			{
-				SetConsoleTextAttribute(handle, white);
-				std::cout << "1 ";
-			}
-
-			// 열린 리스트
-			else if (grid[y][x] == 5)
-			{
-				SetConsoleTextAttribute(handle, green);
-				std::cout << "+ ";
-			}
-
-			// 닫힌 리스트
-			else if (grid[y][x] == 6)
-			{
-				SetConsoleTextAttribute(handle, wow);
-				std::cout << "+ ";
-			}
-
-			// 빈 공간.
-			else if (grid[y][x] == 0)
-			{
-				SetConsoleTextAttribute(handle, white);
-				std::cout << "0 ";
-			}
-		}
-
-		std::cout << "\n";
-	}
-}
-
-void AStar::DisplayCurNode(Node* currentNode)
-{
-	static COORD position = { 0, 0 };
-	static HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
-	SetConsoleCursorPosition(handle, position);
-
-	std::cout << "                            ";
-	SetConsoleCursorPosition(handle, position);
-
-	std::vector<Node*>::iterator iter = openList.begin();
-
-	std::cout << "curNode: " << "{ "
-		<< currentNode->position.x << ", "
-		<< currentNode->position.y << " } ";
-
-}
-

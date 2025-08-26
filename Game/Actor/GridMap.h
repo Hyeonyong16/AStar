@@ -25,8 +25,8 @@ public:
 
 public:
 	// Getter
-	inline std::vector<std::vector<int*>> GetGridInfo() const { return grid; }
-	inline std::list<Node*> GetPurposeNode() const { return purposeNode; }
+	inline std::vector<std::vector<int*>>& GetGridInfo() { return grid; }
+	inline std::list<Node*>& GetPurposeNode() { return purposeNode; }
 	inline int GetWidth() const { return width; }
 	inline int GetHeight() const { return height; }
 
@@ -41,6 +41,11 @@ public:
 
 	// 목표 위치 리셋
 	void PurPoseNodeReset();
+
+	void ResetSettings(bool isSafeDelete);
+
+public:
+	void SetIsDraw(bool isDraw) { isDrawList = isDraw; }
 	
 
 private:
@@ -65,4 +70,6 @@ private:
 	// 목표 노드들을 관리할 리스트
 	// head 부터 이동
 	std::list<Node*> purposeNode;
+
+	bool isDrawList = false;
 };

@@ -2,16 +2,6 @@
 
 #include <vector>
 
-template<typename T>
-void SafeDelete(T*& pointer)
-{
-	if (pointer)
-	{
-		delete pointer;
-		pointer = nullptr;
-	}
-}
-
 // A* 길찾기 알고리즘을 처리하는 클래스
 class Node;
 class AStar
@@ -35,14 +25,19 @@ public:
 	std::vector<Node*> FindPath(
 		Node* startNode,
 		Node* goalNode,
-		std::vector<std::vector<int>>& grid
+		std::vector<std::vector<int*>>& grid
 	);
 
 	// 그리드 출력 함수.
 	void DisplayGridWithPath(
-		std::vector<std::vector<int>>& grid,
+		std::vector<std::vector<int*>>& grid,
 		const std::vector<Node*>& path
 	);
+
+public:
+	inline bool GetIsFindDestination() const { return isFindDestination; }
+
+	void ResetAStar();
 
 private:
 
@@ -57,7 +52,7 @@ private:
 	bool IsInRange(
 		int x,
 		int y,
-		const std::vector<std::vector<int>>& grid
+		const std::vector<std::vector<int*>>& grid
 	);
 
 	// 이미 방문했는지 확인하는 함수
@@ -65,11 +60,6 @@ private:
 
 	// 현재 지점에서 목표 지점까지의 추정 비용 계산 하무
 	float CalculateHeuristic(Node* currentNode, Node* goalNode);
-
-	void DisplayGrid(std::vector<std::vector<int>>& grid);
-
-	void DisplayOpenList();
-	void DisplayCurNode(Node* currentNode);
 
 private:
 	// 열린 리스트 (방문할 노드의 목록)
@@ -83,4 +73,8 @@ private:
 
 	// 목표 노드
 	Node* goalNode = nullptr;
+
+	// 경로 찾기 시 처음 openlist 에 시작 노드 여부
+	bool isAddStartNode = false;
+	bool isFindDestination = false;
 };

@@ -1,8 +1,11 @@
 #pragma once
 #include "Level/Level.h"
 #include "Actor/Actor.h"
+#include "Utils/AStar.h"
+#include "Utils/Timer.h"
 #include <vector>
 
+class Player;
 class GridMap;
 class GameLevel : public Level
 {
@@ -17,9 +20,16 @@ public:
 	virtual void Tick(float _deltaTime) override;
 	virtual void Render() override;
 
+public:
+	void StartFindPath();
+	void ResetSettings();
+
 private:
 	// 현재 레벨 grid 정보
 	GridMap* grid;
+
+	// AStar 객체
+	AStar aStar;
 
 	// 커서 위치
 	Vector2 playerCursor;
@@ -30,7 +40,15 @@ private:
 
 	// 현재 길찾기 진행 여부
 	bool isFindingPath = false;
+	bool isDrawingPath = false;
 	bool isMoveToPath = false;
 
+	// 경로 저장
+	std::vector<Node*> movePath;
 
+	Timer renderTimer;
+	float renderTargetTime = 0.15f;
+
+	// 움직일 플레이어 정보
+	Player* player;
 };
