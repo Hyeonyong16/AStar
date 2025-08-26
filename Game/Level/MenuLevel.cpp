@@ -27,9 +27,7 @@ MenuLevel::MenuLevel()
 	items.emplace_back(new MenuItem(
 		temp,
 		[]() { 
-			char buffer[30] = {};
-			sprintf_s(buffer, 30, "Map%d.txt", Game::Get().GetCurStage());
-			Game::Get().GoLevel(buffer); 
+			Game::Get().GoLevel(); 
 		}
 	));
 

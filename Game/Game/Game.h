@@ -15,10 +15,7 @@ public:
 	void GoMenu();
 
 	// 맵 데이터를 넣으면 해당 레벨로 이동
-	void GoLevel(const char* _map);
-
-	inline int GetCurStage() { return curStage; }
-	inline void SetCurStage(int _curStage) { curStage = _curStage; }
+	void GoLevel();
 
 	virtual void CleanUp() override;
 	static Game& Get();
@@ -30,10 +27,7 @@ private:
 
 private:
 	Level* menuLevel = nullptr;
-
-	// 현재 진행중 스테이지를 나타낼 변수
-	// 메뉴 제외 1 = 1층, 2 = 2층 ~
-	int curStage = 1;
+	Level* astarLevel = nullptr;
 
 	bool isLevelChangePreviousFrame = false;
 

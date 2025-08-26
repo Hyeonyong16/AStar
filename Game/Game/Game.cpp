@@ -9,7 +9,7 @@ Game::Game()
 	instance = this;
 	// 레벨 추가.
 	menuLevel = new MenuLevel();
-
+	astarLevel = new GameLevel();
 	AddLevel(menuLevel);
 }
 
@@ -31,24 +31,17 @@ void Game::GoMenu()
 	isLevelChangePreviousFrame = true;
 }
 
-void Game::GoLevel(const char* _map)
+void Game::GoLevel()
 {
 	// 화면 정리.
 	// clear screen 명령어 실행.
 	system("cls");
 
-	for (int i = 0; i < loadedLevels.size(); ++i)
-	{
-		if (mainLevel != loadedLevels[i].second)
-		{
-			if (strcmp(loadedLevels[i].first, _map) == 0)
-			{
-				mainLevel = loadedLevels[i].second;
-				curStage = i + 1;
-				return;
-			}
-		}
-	}
+	// 메뉴 레벨을 메인 레벨로 설정.
+	mainLevel = astarLevel;
+
+	// 기존 레벨 제거
+	isLevelChangePreviousFrame = true;
 }
 
 void Game::CleanUp()
