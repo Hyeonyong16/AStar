@@ -256,7 +256,7 @@ void AStar::ResetAStar()
 	}
 	openList.clear();
 
-	for (Node* node : closedList)
+for (Node* node : closedList)
 	{
 		SafeDelete(node);
 	}

@@ -43,6 +43,8 @@ private:
 	bool isDrawingPath = false;
 	bool isMoveToPath = false;
 
+	bool isPlayingAnim = false;
+
 	// 경로 저장
 	std::vector<Node*> movePath;
 

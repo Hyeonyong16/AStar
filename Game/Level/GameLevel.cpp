@@ -7,6 +7,8 @@
 #include "Actor/GridMap.h"
 #include "Actor/Player.h"
 
+#include <string>
+
 #include <iostream>
 
 
@@ -54,61 +56,64 @@ void GameLevel::Tick(float _deltaTime)
 	// Todo: GetKey 함수로 변경 및 타이머 추가해서 이동속도 조절
 	if(isFindingPath == false)
 	{
-		if (Input::Get().GetKeyDown(VK_UP))
+		if(isPlayingAnim == false)
 		{
-			if (playerCursor.y > 0)
-				--playerCursor.y;
-		}
-
-		if (Input::Get().GetKeyDown(VK_DOWN))
-		{
-			if (playerCursor.y < grid->GetHeight() - 1)
-				++playerCursor.y;
-		}
-
-		if (Input::Get().GetKeyDown(VK_LEFT))
-		{
-			if (playerCursor.x > 0)
-				--playerCursor.x;
-		}
-
-		if (Input::Get().GetKeyDown(VK_RIGHT))
-		{
-			if (playerCursor.x < grid->GetWidth() - 1)
-				++playerCursor.x;
-		}
-
-		// 벽 생성
-		if (Input::Get().GetKeyDown('W'))
-		{
-			grid->SetWall(playerCursor);
-		}
-
-		// 벽 초기화
-		if (Input::Get().GetKeyDown('R'))
-		{
-			grid->WallReset();
-		}
-
-		if (Input::Get().GetKeyDown('S'))
-		{
-			grid->SetPurposeNode(playerCursor);
-		}
-
-		// 설정 초기화
-		if (Input::Get().GetKeyDown(VK_DELETE))
-		{
-			ResetSettings();
-		}
-
-		// 길찾기 시작
-		if (Input::Get().GetKeyDown('T'))
-		{
-			// 목표 노드가 2개 미만 (아예 없거나 시작점만 있음)
-			if (grid->GetPurposeNode().size() >= 2)
+			if (Input::Get().GetKeyDown(VK_UP))
 			{
-				isFindingPath = true;
-				grid->SetIsDraw(true);
+				if (playerCursor.y > 0)
+					--playerCursor.y;
+			}
+
+			if (Input::Get().GetKeyDown(VK_DOWN))
+			{
+				if (playerCursor.y < grid->GetHeight() - 1)
+					++playerCursor.y;
+			}
+
+			if (Input::Get().GetKeyDown(VK_LEFT))
+			{
+				if (playerCursor.x > 0)
+					--playerCursor.x;
+			}
+
+			if (Input::Get().GetKeyDown(VK_RIGHT))
+			{
+				if (playerCursor.x < grid->GetWidth() - 1)
+					++playerCursor.x;
+			}
+
+			// 벽 생성
+			if (Input::Get().GetKeyDown('W'))
+			{
+				grid->SetWall(playerCursor);
+			}
+
+			// 벽 초기화
+			if (Input::Get().GetKeyDown('R'))
+			{
+				grid->WallReset();
+			}
+
+			if (Input::Get().GetKeyDown('S'))
+			{
+				grid->SetPurposeNode(playerCursor);
+			}
+
+			// 설정 초기화
+			if (Input::Get().GetKeyDown(VK_DELETE))
+			{
+				ResetSettings();
+			}
+
+			// 길찾기 시작
+			if (Input::Get().GetKeyDown('T'))
+			{
+				// 목표 노드가 2개 미만 (아예 없거나 시작점만 있음)
+				if (grid->GetPurposeNode().size() >= 2)
+				{
+					isFindingPath = true;
+					grid->SetIsDraw(true);
+				}
 			}
 		}
 	}
@@ -126,6 +131,8 @@ void GameLevel::Tick(float _deltaTime)
 
 	if (isDrawingPath)
 	{
+		if (isPlayingAnim == false) isPlayingAnim = true;
+
 		// 플레이어 처음 활성화 시
 		if (player->GetIsDraw() == false)
 		{
@@ -149,6 +156,10 @@ void GameLevel::Tick(float _deltaTime)
 					{
 						player->Move(Vector2(movePath[i + 1]->position.x, movePath[i + 1]->position.y));
 						break;
+					}
+					else
+					{
+						isPlayingAnim = false;
 					}
 				}
 			}
@@ -188,6 +199,14 @@ void GameLevel::Render()
 	{
 		Engine::Get().WriteToBuffer(Vector2(playerCursor.x + 1, playerCursor.y + 1), "O", Color::White);
 	}
+
+	// 키 알림용 텍스트
+	std::string str = "방향키: 이동, W: 벽, R: 벽 초기화, S: 노드, T: 시작(노드2개 이상), DEL: 초기화";
+	Engine::Get().WriteToBuffer(
+		Vector2(0, grid->GetHeight() + 2),
+		str.c_str(),
+		Color::White
+	);
 }
 
 void GameLevel::StartFindPath()
