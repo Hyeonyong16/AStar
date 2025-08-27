@@ -32,6 +32,7 @@ public:
 
 	// 벽 설정
 	void SetWall(Vector2 pos);
+	void SetWall(Vector2 pos, bool isSet);
 
 	// 벽 리셋
 	void WallReset();
@@ -43,6 +44,8 @@ public:
 	void PurPoseNodeReset();
 
 	void ResetSettings(bool isSafeDelete);
+
+	void ResetOpenClosedList();
 
 public:
 	inline void SetIsDraw(bool isDraw) { isDrawList = isDraw; }
@@ -63,7 +66,7 @@ private:
 	int height = 50;
 
 	// 최대 목표 노드 수
-	int maxPurposeNode = 10;
+	int maxPurposeNode = 9;
 
 	// 목표 노드 변경 여부
 	bool isNodeChange = false;

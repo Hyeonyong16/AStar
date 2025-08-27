@@ -143,6 +143,28 @@ void GridMap::SetWall(Vector2 pos)
 	*(grid[pos.y][pos.x]) = -1;
 }
 
+// 처음 입력을 시작한 위치에 벽을 설치했는지 아닌지를 받아서 벽 설치 여부 설정
+void GridMap::SetWall(Vector2 pos, bool isSet)
+{
+	// 입력받은 좌표가 목표노드이면 그냥 반환
+	if (*(grid[pos.y][pos.x]) != 0 && *(grid[pos.y][pos.x]) != -1)
+	{
+		return;
+	}
+
+	if (isSet == true)
+	{
+		// 입력받은 좌표 벽 설정
+		*(grid[pos.y][pos.x]) = -1;
+	}
+	else
+	{
+		// 입력받은 좌표 벽 해제
+		*(grid[pos.y][pos.x]) = 0;
+	}
+	
+}
+
 // 현재 그리드의 벽 제거
 void GridMap::WallReset()
 {
@@ -243,4 +265,18 @@ void GridMap::ResetSettings(bool isSafeDelete)
 	isDrawList = false;
 
 	
+}
+
+void GridMap::ResetOpenClosedList()
+{
+	for (int i = 0; i < height; ++i)
+	{
+		for (int j = 0; j < width; ++j)
+		{
+			if (*grid[i][j] == 20 || *grid[i][j] == 21)
+			{
+				*grid[i][j] = 0;
+			}
+		}
+	}
 }

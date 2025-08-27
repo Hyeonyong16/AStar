@@ -27,6 +27,18 @@ GameLevel::GameLevel()
 
 	player = new Player();
 	AddActor(player);
+
+	keyMoveSpeed = 5.0f;
+	keyMoveDelay = 0.3f;
+
+	keyInputTime = 0.5f;
+
+	for (int i = 0; i < 4; ++i)
+	{
+		keyInputTimer[i].Reset();
+		keyInputTimer[i].SetTargetTime(keyInputTime);
+		keyMoveCurDelay[i] = 0.f;
+	}
 }
 
 GameLevel::~GameLevel()
@@ -62,34 +74,155 @@ void GameLevel::Tick(float _deltaTime)
 	{
 		if(isPlayingAnim == false)
 		{
+			// 방향키 눌렀을 때=======================================
 			if (Input::Get().GetKeyDown(VK_UP))
 			{
+				keyInputTimer[0].Tick(_deltaTime);
 				if (playerCursor.y > 0)
 					--playerCursor.y;
 			}
 
 			if (Input::Get().GetKeyDown(VK_DOWN))
 			{
+				keyInputTimer[1].Tick(_deltaTime);
 				if (playerCursor.y < grid->GetHeight() - 1)
 					++playerCursor.y;
 			}
 
 			if (Input::Get().GetKeyDown(VK_LEFT))
 			{
+				keyInputTimer[2].Tick(_deltaTime);
 				if (playerCursor.x > 0)
 					--playerCursor.x;
 			}
 
 			if (Input::Get().GetKeyDown(VK_RIGHT))
 			{
+				keyInputTimer[3].Tick(_deltaTime);
 				if (playerCursor.x < grid->GetWidth() - 1)
 					++playerCursor.x;
 			}
+
+			// 방향키 입력 중========================================
+			if (Input::Get().GetKey(VK_UP))
+			{
+				if (!keyInputTimer[0].IsTimeout())
+				{
+					keyInputTimer[0].Tick(_deltaTime);
+				}
+				else
+				{
+					keyMoveCurDelay[0] += keyMoveSpeed * _deltaTime;
+					if (keyMoveCurDelay[0] > keyMoveDelay)
+					{
+						if (playerCursor.y > 0.f)
+							--playerCursor.y;
+
+						keyMoveCurDelay[0] = 0.f;
+					}
+				}
+			}
+
+			if (Input::Get().GetKey(VK_DOWN))
+			{
+				if (!keyInputTimer[1].IsTimeout())
+				{
+					keyInputTimer[1].Tick(_deltaTime);
+				}
+				else
+				{
+					keyMoveCurDelay[1] += keyMoveSpeed * _deltaTime;
+					if (keyMoveCurDelay[1] > keyMoveDelay)
+					{
+						if (playerCursor.y < grid->GetHeight() - 1)
+							++playerCursor.y;
+
+						keyMoveCurDelay[1] = 0.f;
+					}
+				}
+			}
+
+			if (Input::Get().GetKey(VK_LEFT))
+			{
+				if (!keyInputTimer[2].IsTimeout())
+				{
+					keyInputTimer[2].Tick(_deltaTime);
+				}
+				else
+				{
+					keyMoveCurDelay[2] += keyMoveSpeed * _deltaTime;
+					if (keyMoveCurDelay[2] > keyMoveDelay)
+					{
+						if (playerCursor.x > 0)
+							--playerCursor.x;
+
+						keyMoveCurDelay[2] = 0.f;
+					}
+				}
+			}
+
+			if (Input::Get().GetKey(VK_RIGHT))
+			{
+				if (!keyInputTimer[3].IsTimeout())
+				{
+					keyInputTimer[3].Tick(_deltaTime);
+				}
+				else
+				{
+					keyMoveCurDelay[3] += keyMoveSpeed * _deltaTime;
+					if (keyMoveCurDelay[3] > keyMoveDelay)
+					{
+						if (playerCursor.x < grid->GetWidth() - 1)
+							++playerCursor.x;
+
+						keyMoveCurDelay[3] = 0.f;
+					}
+				}
+			}
+
+			// 방향키 땠을 때========================================
+			if (Input::Get().GetKeyUp(VK_UP))
+			{
+				keyInputTimer[0].Reset();
+				keyInputTimer[0].SetTargetTime(keyInputTime);
+				keyMoveCurDelay[0] = 0.f;
+			}
+
+			if (Input::Get().GetKeyUp(VK_DOWN))
+			{
+				keyInputTimer[1].Reset();
+				keyInputTimer[1].SetTargetTime(keyInputTime);
+				keyMoveCurDelay[1] = 0.f;
+			}
+
+			if (Input::Get().GetKeyUp(VK_LEFT))
+			{
+				keyInputTimer[2].Reset();
+				keyInputTimer[2].SetTargetTime(keyInputTime);
+				keyMoveCurDelay[2] = 0.f;
+			}
+
+			if (Input::Get().GetKeyUp(VK_RIGHT))
+			{
+				keyInputTimer[3].Reset();
+				keyInputTimer[3].SetTargetTime(keyInputTime);
+				keyMoveCurDelay[3] = 0.f;
+			}
+
+
 
 			// 벽 생성
 			if (Input::Get().GetKeyDown('W'))
 			{
 				grid->SetWall(playerCursor);
+				int curWall = *(grid->GetGridInfo()[playerCursor.y][playerCursor.x]);
+				if (curWall == 0) isSetWall = false;
+				else isSetWall = true;
+			}
+			// 벽 생성
+			if (Input::Get().GetKey('W'))
+			{
+				grid->SetWall(playerCursor, isSetWall);
 			}
 
 			// 벽 초기화
@@ -209,26 +342,29 @@ void GameLevel::Render()
 	{
 		for(int i = 0; i < movePath.size(); ++i)
 		{
-			for (int j = 0; j < movePath[i].size(); ++j)
+			if(i == animNum || animNum >= movePath.size())
 			{
-				if (movePath[i][j]->position.x == player->GetPosition().x
-					&& movePath[i][j]->position.y == player->GetPosition().y)
-					continue;
-
-				// 만약 목적노드여서 루트 대신 숫자 적을지 여부
-				bool isDrawPass = false;
-				for (Node* purposeNode : grid->GetPurposeNode())
+				for (int j = 0; j < movePath[i].size(); ++j)
 				{
-					if (movePath[i][j]->position.x == purposeNode->position.x
-						&& movePath[i][j]->position.y == purposeNode->position.y)
-					{
-						isDrawPass = true;
-						break;
-					}
-				}
-				if (isDrawPass == true) continue;
+					if (movePath[i][j]->position.x == player->GetPosition().x
+						&& movePath[i][j]->position.y == player->GetPosition().y)
+						continue;
 
-				Engine::Get().WriteToBuffer(Vector2(movePath[i][j]->position.x + 1, movePath[i][j]->position.y + 1), "*", Color::Yellow);
+					// 만약 목적노드여서 루트 대신 숫자 적을지 여부
+					bool isDrawPass = false;
+					for (Node* purposeNode : grid->GetPurposeNode())
+					{
+						if (movePath[i][j]->position.x == purposeNode->position.x
+							&& movePath[i][j]->position.y == purposeNode->position.y)
+						{
+							isDrawPass = true;
+							break;
+						}
+					}
+					if (isDrawPass == true) continue;
+
+					Engine::Get().WriteToBuffer(Vector2(movePath[i][j]->position.x + 1, movePath[i][j]->position.y + 1), "*", Color::Yellow);
+				}
 			}
 		}
 	}
@@ -275,7 +411,6 @@ void GameLevel::StartFindPath()
 	// 순회 한번 완료 시
 	if (aStar.GetIsFindDestination())
 	{
-		std::list<Node*> temp = grid->GetPurposeNode();
 		// 현재 경로를 저장
 		movePath.emplace_back(path);
 
@@ -283,7 +418,7 @@ void GameLevel::StartFindPath()
 		aStar.ResetOpenClosedList(path);
 
 		// grid 내 열린/닫힌 리스트 초기화
-		temp = grid->GetPurposeNode();
+		grid->ResetOpenClosedList();
 
 
 		// 순회 횟수 추가

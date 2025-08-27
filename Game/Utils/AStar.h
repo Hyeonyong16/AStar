@@ -28,12 +28,6 @@ public:
 		std::vector<std::vector<int*>>& grid
 	);
 
-	// 그리드 출력 함수.
-	void DisplayGridWithPath(
-		std::vector<std::vector<int*>>& grid,
-		const std::vector<Node*>& path
-	);
-
 public:
 	inline bool GetIsFindDestination() const { return isFindDestination; }
 

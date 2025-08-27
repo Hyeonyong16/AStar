@@ -49,8 +49,18 @@ private:
 	// 여러 경로를 저장하기 위해 2중 vector 사용
 	std::vector<std::vector<Node*>> movePath;
 
+	// 화면에 탐색 애니메이션 재생될 타이머 
 	Timer renderTimer;
 	float renderTargetTime = 0.15f;
+
+	// 방향 키 길게 입력 시 인식될 시간 타이머
+	// 상 하 좌 우 순서
+	Timer keyInputTimer[4];
+	float keyInputTime = 0.5f;
+	// 키 입력 시간
+	float keyMoveCurDelay[4] = { };
+	float keyMoveSpeed = 5.0f;
+	float keyMoveDelay = 0.3f;
 
 	// 움직일 플레이어 정보
 	Player* player;
@@ -61,4 +71,7 @@ private:
 
 	// 애니메이션 노드 찾아가는 횟수
 	int animNum = 0;
+
+	// 벽 설치 여부 확인용 bool
+	bool isSetWall = false;
 };

@@ -179,76 +179,10 @@ std::vector<Node*> AStar::FindPath(Node* startNode, Node* goalNode, std::vector<
 			{
 				SafeDelete(neighborNode);
 			}
-
-			//DisplayGrid(grid);
-			//DisplayClosedList();
-
-			/*int delay = (int)(0.1f * 1000);
-			Sleep(delay);*/
 		}
 	}
 
 	return std::vector<Node*>();
-}
-
-void AStar::DisplayGridWithPath(std::vector<std::vector<int*>>& grid, const std::vector<Node*>& path)
-{
-	static COORD position = { 0, 2 };
-	static HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
-	SetConsoleCursorPosition(handle, position);
-
-	int white = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE;
-	int green = FOREGROUND_GREEN;
-
-	// 구분을 위해 설정했던 데이터 초기화.
-	for (int y = 0; y < grid.size(); ++y)
-	{
-		for (int x = 0; x < grid[0].size(); ++x)
-		{
-			int& value = *grid[y][x];
-			if (value == 2 || value == 3 || value == 5 || value == 6)
-			{
-				value = 0;
-			}
-		}
-	}
-
-	// 경로를 제외한 맵 출력.
-	for (int y = 0; y < grid.size(); ++y)
-	{
-		for (int x = 0; x < grid[0].size(); ++x)
-		{
-			// 장애물.
-			if (*grid[y][x] == 1)
-			{
-				SetConsoleTextAttribute(handle, white);
-				std::cout << "1 ";
-			}
-
-
-			// 빈 공간.
-			else if (*grid[y][x] == 0)
-			{
-				SetConsoleTextAttribute(handle, white);
-				std::cout << "0 ";
-			}
-		}
-
-		std::cout << "\n";
-	}
-
-	// 경로 출력.
-	for (const Node* node : path)
-	{
-		// 경로는 '2'로 표시.
-		COORD position{ static_cast<short>(node->position.x * 2), static_cast<short>(node->position.y) + 2 };
-		SetConsoleCursorPosition(handle, position);
-		SetConsoleTextAttribute(handle, green);
-
-		std::cout << "* ";
-		/*int delay = static_cast<int>(0.05f * 1000);
-		Sleep(delay);*/
-	}
 }
 
 void AStar::ResetAStar()
