@@ -41,7 +41,7 @@ private:
 	bool isPlay = false;
 
 	// 이동 속도
-	float moveTime = 0.3f;
+	float moveTime = 0.05f;
 
 	Timer moveTimer;
 };

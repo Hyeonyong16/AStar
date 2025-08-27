@@ -51,7 +51,7 @@ private:
 
 	// 화면에 탐색 애니메이션 재생될 타이머 
 	Timer renderTimer;
-	float renderTargetTime = 0.15f;
+	float renderTargetTime = 0.05f;
 
 	// 방향 키 길게 입력 시 인식될 시간 타이머
 	// 상 하 좌 우 순서
@@ -74,4 +74,6 @@ private:
 
 	// 벽 설치 여부 확인용 bool
 	bool isSetWall = false;
+
+	bool isFailed= false;
 };

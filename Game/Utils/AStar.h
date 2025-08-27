@@ -31,9 +31,10 @@ public:
 public:
 	inline bool GetIsFindDestination() const { return isFindDestination; }
 
-	void ResetAStar();
+	void ResetAStar(bool isFirstDelete = true);
 	void ResetOpenClosedList(std::vector<Node*> path);
-
+	//void CheckDebug();
+	bool GetOpenListNum() const { return openList.empty(); }
 private:
 
 	// 탐색을 마친 후에 경로를 조립해 반환하는 함수
@@ -62,6 +63,9 @@ private:
 
 	// 닫힌 리스트 (방문한 노드의 목록)
 	std::vector<Node*> closedList;
+
+	// 디버깅용
+	//std::vector<Node*> debugList;
 
 	// 시작 노드
 	Node* startNode = nullptr;

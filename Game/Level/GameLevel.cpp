@@ -22,7 +22,7 @@ GameLevel::GameLevel()
 	startPos = Vector2(0, 0);
 	goalPos = Vector2(0, 0);
 
-	renderTargetTime = 0.05f;
+	renderTargetTime = 0.002f;
 	renderTimer.SetTargetTime(renderTargetTime);
 
 	player = new Player();
@@ -63,17 +63,18 @@ void GameLevel::Tick(float _deltaTime)
 {
 	super::Tick(_deltaTime);
 
-	if (Input::Get().GetKeyDown(VK_ESCAPE))
-	{
-		Game::Get().GoMenu();
-	}
-
 	// 키입력
 	// Todo: GetKey 함수로 변경 및 타이머 추가해서 이동속도 조절
 	if(isFindingPath == false)
 	{
 		if(isPlayingAnim == false)
 		{
+			if (Input::Get().GetKeyDown(VK_ESCAPE))
+			{
+				ResetSettings();
+				Game::Get().GoMenu();
+			}
+
 			// 방향키 눌렀을 때=======================================
 			if (Input::Get().GetKeyDown(VK_UP))
 			{
@@ -278,7 +279,14 @@ void GameLevel::Tick(float _deltaTime)
 			if (isPlayingAnim == false) isPlayingAnim = true;
 			
 			// 출발 위치로 이동 시키기
-			player->Move(Vector2(movePath[0][0]->position.x, movePath[0][0]->position.y));
+			if(isFailed && findNum == 0)
+			{
+				isPlayingAnim = false;
+				player->Move(startPos);
+			}
+
+			else
+				player->Move(Vector2(movePath[0][0]->position.x, movePath[0][0]->position.y));
 		}
 
 		if (player->GetIsPlay())
@@ -367,6 +375,16 @@ void GameLevel::Render()
 				}
 			}
 		}
+
+		if (isFailed == true)
+		{
+			std::string str = "경로 찾기를 실패했습니다.";
+			Engine::Get().WriteToBuffer(
+				Vector2(0, grid->GetHeight() + 3),
+				str.c_str(),
+				Color::RedIntensity
+			);
+		}
 	}
 
 	if (isFindingPath == false && isMoveToPath == false)
@@ -387,6 +405,11 @@ void GameLevel::StartFindPath()
 {
 	// 목표 노드가 2개 미만 (아예 없거나 시작점만 있음)
 	if (grid->GetPurposeNode().size() < 2)
+	{
+		return;
+	}
+
+	if (isFailed == true)
 	{
 		return;
 	}
@@ -434,6 +457,27 @@ void GameLevel::StartFindPath()
 		}
 
 		grid->SetIsNodeChange(true);
+		//aStar.CheckDebug();
+	}
+
+	// 탐색 실패 시
+	else
+	{
+		if(aStar.GetOpenListNum())
+		{
+			// 탐색 실패 관련 플래그
+			isFailed = true;
+
+			// 순회 횟수 추가
+			// findNum += 1;
+
+			isDrawingPath = true;
+			isFindingPath = false;
+
+			grid->SetIsDraw(false);
+
+			grid->SetIsNodeChange(true);
+		}
 	}
 }
 
@@ -443,7 +487,7 @@ void GameLevel::ResetSettings()
 	grid->ResetSettings(aStar.GetIsFindDestination());
 
 	// Astar 초기화
-	aStar.ResetAStar();
+	aStar.ResetAStar(isFailed);
 
 	// 위에서 Start 노드만 openlist 에서 바로 삭제
 	// 나머지는 new node로 만든거
@@ -476,5 +520,7 @@ void GameLevel::ResetSettings()
 
 	findNum = 0;
 	animNum = 0;
+
+	isFailed = false;
 }
 

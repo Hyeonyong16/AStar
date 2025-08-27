@@ -10,6 +10,7 @@ AStar::AStar()
 
 AStar::~AStar()
 {
+	//CheckDebug();
 	// 메모리 해제
 	for (Node* node : openList)
 	{
@@ -102,6 +103,10 @@ std::vector<Node*> AStar::FindPath(Node* startNode, Node* goalNode, std::vector<
 			// 위치 비교
 			if (*node == *currentNode)
 			{
+				//if (node != currentNode)
+				//{
+					//SafeDelete(currentNode);
+				//}
 				isNodeInList = true;
 				break;
 			}
@@ -148,7 +153,22 @@ std::vector<Node*> AStar::FindPath(Node* startNode, Node* goalNode, std::vector<
 			// 방문을 위한 노드 생성
 			// 비용도 계산
 			Node* neighborNode = new Node(newX, newY, currentNode);
+			//debugList.push_back(neighborNode);
 			neighborNode->gCost = currentNode->gCost + direction.cost;
+
+			/*if (newX == 5 && newY == 1)
+			{
+				int a = 0;
+			}
+			if (newX == 6 && newY == 1)
+			{
+				int a = 0;
+			}
+			if (newX == 7 && newY == 1)
+			{
+				int a = 0;
+			}*/
+
 
 			// 휴리스틱 계산 함수 호출
 			neighborNode->hCost = CalculateHeuristic(neighborNode, goalNode);
@@ -185,7 +205,7 @@ std::vector<Node*> AStar::FindPath(Node* startNode, Node* goalNode, std::vector<
 	return std::vector<Node*>();
 }
 
-void AStar::ResetAStar()
+void AStar::ResetAStar(bool isFirstDelete)
 {
 	for (Node* node : openList)
 	{
@@ -193,8 +213,14 @@ void AStar::ResetAStar()
 	}
 	openList.clear();
 
+	int i = 0;
 	for (Node* node : closedList)
 	{
+		if (isFirstDelete && i == 0)
+		{
+			++i;
+			continue;
+		}
 		SafeDelete(node);
 	}
 	closedList.clear();
@@ -244,6 +270,11 @@ void AStar::ResetOpenClosedList(std::vector<Node*> path)
 	isFindDestination = false;
 }
 
+//void AStar::CheckDebug()
+//{
+//	int a = debugList.size();
+//}
+
 std::vector<Node*> AStar::ConstructPath(Node* goalNode)
 {
 	// 경로 반환
@@ -291,7 +322,7 @@ bool AStar::HasVisited(int x, int y, float gCost)
 		if (node->position.x == x && node->position.y == y)
 		{
 			// 위치가 같고, 비용도 더 크면 방문할 이유 없음
-			if (node->gCost < gCost)
+			if (node->gCost <= gCost)
 			{
 				return true;
 			}
@@ -309,7 +340,7 @@ bool AStar::HasVisited(int x, int y, float gCost)
 		if (node->position.x == x && node->position.y == y)
 		{
 			// 위치가 같고, 비용도 높으면 방문할 이유 없음
-			if (node->gCost < gCost)
+			if (node->gCost <= gCost)
 			{
 				return true;
 			}
