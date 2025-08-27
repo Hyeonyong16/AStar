@@ -45,7 +45,12 @@ GridMap::~GridMap()
 	int i = 0;
 	for (Node* node : purposeNode)
 	{
+		if (i == purposeNode.size() - 1)
+		{
+			SafeDelete(node);
+		}
 		//SafeDelete(node);
+		++i;
 	}
 	purposeNode.clear();
 }
@@ -175,6 +180,7 @@ void GridMap::SetPurposeNode(Vector2 pos)
 				*(grid[pos.y][pos.x]) = 0;
 
 				// 목표 노드 제거
+				SafeDelete(*iter);
 				purposeNode.erase(iter);
 				break;
 			}

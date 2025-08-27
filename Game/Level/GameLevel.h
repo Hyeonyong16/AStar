@@ -46,11 +46,19 @@ private:
 	bool isPlayingAnim = false;
 
 	// 경로 저장
-	std::vector<Node*> movePath;
+	// 여러 경로를 저장하기 위해 2중 vector 사용
+	std::vector<std::vector<Node*>> movePath;
 
 	Timer renderTimer;
 	float renderTargetTime = 0.15f;
 
 	// 움직일 플레이어 정보
 	Player* player;
+
+	// 목적 노드 탐색 횟수
+	// 필요한 탐색 횟수는 grid 에서 purposeNode size 가져와서 -1 
+	int findNum = 0;
+
+	// 애니메이션 노드 찾아가는 횟수
+	int animNum = 0;
 };

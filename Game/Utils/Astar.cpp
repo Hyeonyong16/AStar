@@ -72,7 +72,10 @@ std::vector<Node*> AStar::FindPath(Node* startNode, Node* goalNode, std::vector<
 		{
 			// 목표 노드라면, 지금까지의 경로를 계산해서 반환
 			isFindDestination = true;
-			closedList.emplace_back(goalNode);
+			// 경로를 찾은 상태에서 다시 재생 시
+			// 목적노드 한번 더 넣는 것 방지
+			if(closedList[closedList.size() - 1] != goalNode)
+				closedList.emplace_back(currentNode);
 			return ConstructPath(currentNode);
 		}
 
@@ -256,7 +259,7 @@ void AStar::ResetAStar()
 	}
 	openList.clear();
 
-for (Node* node : closedList)
+	for (Node* node : closedList)
 	{
 		SafeDelete(node);
 	}
@@ -267,6 +270,44 @@ for (Node* node : closedList)
 
 	startNode = nullptr;
 	goalNode = nullptr;
+}
+
+void AStar::ResetOpenClosedList(std::vector<Node*> path)
+{
+	for (Node* node : openList)
+	{
+		bool isDelete = true;
+		for(int i = 0; i < path.size(); ++i)
+		{
+			if (path[i] == node)
+			{
+				isDelete = false;
+				break;
+			}
+		}
+		if(isDelete == true)
+			SafeDelete(node);
+	}
+	openList.clear();
+
+	for (Node* node : closedList)
+	{
+		bool isDelete = true;
+		for (int i = 0; i < path.size(); ++i)
+		{
+			if (path[i] == node)
+			{
+				isDelete = false;
+				break;
+			}
+		}
+		if (isDelete == true)
+			SafeDelete(node);
+	}
+	closedList.clear();
+
+	isAddStartNode = false;
+	isFindDestination = false;
 }
 
 std::vector<Node*> AStar::ConstructPath(Node* goalNode)

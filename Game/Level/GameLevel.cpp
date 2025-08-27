@@ -14,7 +14,7 @@
 
 GameLevel::GameLevel()
 {
-	grid = new GridMap(20, 20);
+	grid = new GridMap(50, 50);
 	AddActor(grid);
 
 	playerCursor = Vector2(0, 0);
@@ -31,9 +31,13 @@ GameLevel::GameLevel()
 
 GameLevel::~GameLevel()
 {
-	for (Node* node : movePath)
+	for(std::vector<Node*> pathNode : movePath)
 	{
-		//SafeDeleteArray(node);
+		for (Node* node : pathNode)
+		{
+			SafeDelete(node);
+		}
+		pathNode.clear();
 	}
 	movePath.clear();
 }
@@ -96,7 +100,8 @@ void GameLevel::Tick(float _deltaTime)
 
 			if (Input::Get().GetKeyDown('S'))
 			{
-				grid->SetPurposeNode(playerCursor);
+				if(isDrawingPath == false)
+					grid->SetPurposeNode(playerCursor);
 			}
 
 			// 설정 초기화
@@ -131,37 +136,53 @@ void GameLevel::Tick(float _deltaTime)
 
 	if (isDrawingPath)
 	{
-		if (isPlayingAnim == false) isPlayingAnim = true;
-
 		// 플레이어 처음 활성화 시
 		if (player->GetIsDraw() == false)
 		{
 			// Draw 활성화
 			player->SetIsDraw(true);
+
+			if (isPlayingAnim == false) isPlayingAnim = true;
 			
 			// 출발 위치로 이동 시키기
-			player->Move(Vector2(movePath[0]->position.x, movePath[0]->position.y));
+			player->Move(Vector2(movePath[0][0]->position.x, movePath[0][0]->position.y));
 		}
 
 		if (player->GetIsPlay())
 		{
-			for (int i = 0; i < movePath.size(); ++i)
+			//for (int i = 0; i < movePath.size(); ++i)
+
+			while(animNum < movePath.size())
 			{
-				// 현재 노드가 플레이어 위치랑 같을 시
-				if (player->GetPosition().x == movePath[i]->position.x
-					&& player->GetPosition().y == movePath[i]->position.y)
+				bool isBreak = false;
+				for(int j = 0; j < movePath[animNum].size(); ++j)
 				{
-					// 다음 노드로 플레이어를 이동 시킨다.
-					if(i != movePath.size() - 1)
+					// 현재 노드가 플레이어 위치랑 같을 시
+					if (player->GetPosition().x == movePath[animNum][j]->position.x
+						&& player->GetPosition().y == movePath[animNum][j]->position.y)
 					{
-						player->Move(Vector2(movePath[i + 1]->position.x, movePath[i + 1]->position.y));
-						break;
-					}
-					else
-					{
-						isPlayingAnim = false;
+						// 다음 노드로 플레이어를 이동 시킨다.
+						if (j != movePath[animNum].size() - 1)
+						{
+							player->Move(Vector2(movePath[animNum][j+1]->position.x, movePath[animNum][j+1]->position.y));
+							isBreak = true;
+							break;
+						}
+						else
+						{
+							++animNum;
+
+							if (animNum == movePath.size())
+							{
+								isPlayingAnim = false;
+							}
+
+							break;
+						}
 					}
 				}
+
+				if (isBreak) break;
 			}
 
 			player->SetIsPlay(false);
@@ -186,12 +207,29 @@ void GameLevel::Render()
 
 	if (isDrawingPath == true)
 	{
-		for (const Node* node : movePath)
+		for(int i = 0; i < movePath.size(); ++i)
 		{
-			if (node->position.x == player->GetPosition().x
-				&& node->position.y == player->GetPosition().y)
-				continue;
-			Engine::Get().WriteToBuffer(Vector2(node->position.x + 1, node->position.y + 1), "*", Color::Yellow);
+			for (int j = 0; j < movePath[i].size(); ++j)
+			{
+				if (movePath[i][j]->position.x == player->GetPosition().x
+					&& movePath[i][j]->position.y == player->GetPosition().y)
+					continue;
+
+				// 만약 목적노드여서 루트 대신 숫자 적을지 여부
+				bool isDrawPass = false;
+				for (Node* purposeNode : grid->GetPurposeNode())
+				{
+					if (movePath[i][j]->position.x == purposeNode->position.x
+						&& movePath[i][j]->position.y == purposeNode->position.y)
+					{
+						isDrawPass = true;
+						break;
+					}
+				}
+				if (isDrawPass == true) continue;
+
+				Engine::Get().WriteToBuffer(Vector2(movePath[i][j]->position.x + 1, movePath[i][j]->position.y + 1), "*", Color::Yellow);
+			}
 		}
 	}
 
@@ -219,19 +257,48 @@ void GameLevel::StartFindPath()
 
 	// 경로 탐색.
 	std::list<Node*>::iterator iter = grid->GetPurposeNode().begin();
+	// 탐색해야할 노드 설정
+	if(findNum < grid->GetPurposeNode().size() - 1)
+	{
+		for (int i = 0; i < findNum; ++i)
+		{
+			++iter;
+		}
+	}
+
 	Node* startNode = *iter;
 	++iter;
 	Node* goalNode = *iter;
 
 	std::vector<Node*> path = aStar.FindPath(startNode, goalNode, grid->GetGridInfo());
 
+	// 순회 한번 완료 시
 	if (aStar.GetIsFindDestination())
 	{
-		movePath = path;
-		isDrawingPath = true;
-		isFindingPath = false;
+		std::list<Node*> temp = grid->GetPurposeNode();
+		// 현재 경로를 저장
+		movePath.emplace_back(path);
 
-		grid->SetIsDraw(false);
+		// astar 내 열린 리스트, 닫힌 리스트 초기화하기
+		aStar.ResetOpenClosedList(path);
+
+		// grid 내 열린/닫힌 리스트 초기화
+		temp = grid->GetPurposeNode();
+
+
+		// 순회 횟수 추가
+		findNum += 1;
+
+		// 순회가 마무리되었으면
+		if(findNum >= grid->GetPurposeNode().size() - 1)
+		{
+			isDrawingPath = true;
+			isFindingPath = false;
+
+			grid->SetIsDraw(false);
+		}
+
+		grid->SetIsNodeChange(true);
 	}
 }
 
@@ -242,6 +309,22 @@ void GameLevel::ResetSettings()
 
 	// Astar 초기화
 	aStar.ResetAStar();
+
+	// 위에서 Start 노드만 openlist 에서 바로 삭제
+	// 나머지는 new node로 만든거
+	// 0번만 제외하고 지울것
+	for (std::vector<Node*> pathNode : movePath)
+	{
+		for (Node* node : pathNode)
+		{
+			if(node != pathNode[0])
+				SafeDelete(node);
+		}
+		pathNode.clear();
+	}
+	movePath.clear();
+
+
 
 	// 레벨 초기화
 	isFindingPath = false;
@@ -255,5 +338,8 @@ void GameLevel::ResetSettings()
 	renderTimer.SetTargetTime(renderTargetTime);
 
 	player->ResetSettings();
+
+	findNum = 0;
+	animNum = 0;
 }
 

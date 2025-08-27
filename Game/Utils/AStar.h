@@ -38,6 +38,7 @@ public:
 	inline bool GetIsFindDestination() const { return isFindDestination; }
 
 	void ResetAStar();
+	void ResetOpenClosedList(std::vector<Node*> path);
 
 private:
 

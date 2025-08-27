@@ -45,7 +45,8 @@ public:
 	void ResetSettings(bool isSafeDelete);
 
 public:
-	void SetIsDraw(bool isDraw) { isDrawList = isDraw; }
+	inline void SetIsDraw(bool isDraw) { isDrawList = isDraw; }
+	inline void SetIsNodeChange(bool isChange) { isNodeChange = isChange; }
 	
 
 private:
@@ -58,8 +59,8 @@ private:
 	std::vector<std::vector<int*>> grid;
 
 	// 그리드 크기
-	int width = 20;
-	int height = 20;
+	int width = 50;
+	int height = 50;
 
 	// 최대 목표 노드 수
 	int maxPurposeNode = 10;
