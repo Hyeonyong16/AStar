@@ -460,9 +460,10 @@ void GameLevel::StartFindPath()
 		//aStar.CheckDebug();
 	}
 
-	// 탐색 실패 시
+	// 목적노드를 찾은게 아닌 상태
 	else
 	{
+		// 열린 노드가 비어있으면 탐색 실패
 		if(aStar.GetOpenListNum())
 		{
 			// 탐색 실패 관련 플래그
