@@ -117,6 +117,17 @@ void RedBlackTreeLevel::Render()
 		}
 	}
 
+	else if (command == CommandType::Delete)
+	{
+		Engine::Get().WriteToBuffer(Vector2(0, 0), "데이터를 숫자로 입력: ", Color::WhiteIntensity);
+		int  i = 0;
+		while (inputData[i] != '\0')
+		{
+			Engine::Get().WriteToBuffer(Vector2(i, 1), inputData[i], Color::WhiteIntensity);
+			++i;
+		}
+	}
+
 	Print();
 }
 
@@ -148,13 +159,13 @@ void RedBlackTreeLevel::PrintRecursive(RBTNode* node, int depth, int spaceCount)
 		// 부모의 왼쪽 노드라면
 		if (node == node->GetParent()->GetLeft())
 		{
-			spaceNum = spaceCount + rbt->GetRightChildNodeNum(node);
+			spaceNum = spaceCount - rbt->GetRightChildNodeNum(node);
 		}
 
 		// 부모의 오른쪽 노드라면
 		else
 		{
-			spaceNum = spaceCount - rbt->GetLeftChildNodeNum(node);
+			spaceNum = spaceCount + rbt->GetLeftChildNodeNum(node);
 		}
 	}
 	std::string buffer = std::to_string(node->GetData());
@@ -165,7 +176,8 @@ void RedBlackTreeLevel::PrintRecursive(RBTNode* node, int depth, int spaceCount)
 		nodeColor = Color::RedIntensity;
 	}
 
-	Engine::Get().WriteToBuffer(Vector2(depth * 5, spaceNum + 2), buffer.c_str(), nodeColor);
+	//Engine::Get().WriteToBuffer(Vector2(depth * 5, spaceNum + 2), buffer.c_str(), nodeColor);
+	Engine::Get().WriteToBuffer(Vector2(spaceNum * 4, depth * 3 + 5), buffer.c_str(), nodeColor);
 
 	// 하위 노드 출력.
 	PrintRecursive(node->GetLeft(), depth + 1, spaceNum);

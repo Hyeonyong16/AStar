@@ -1,0 +1,4 @@
+key=AStarMenu
+width=12
+height=1
+A* Algorithm

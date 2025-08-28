@@ -8,15 +8,14 @@
 
 MenuLevel::MenuLevel()
 {
-	AssetLoading("TitleImage.txt");
-	AssetLoading("StartMenuImage.txt");
-	AssetLoading("ResetMenuImage.txt");
-	AssetLoading("ExitMenuImage.txt");
+	AssetLoading("AStarMenu.txt");
+	AssetLoading("RedBlackTreeMenu.txt");
+	AssetLoading("ExitMenu.txt");
 
 	Asset* temp = nullptr;
 	for (Asset* asset : assets)
 	{
-		if (strcmp(asset->GetKey(), "StartMenuImage") == 0)
+		if (strcmp(asset->GetKey(), "AStarMenu") == 0)
 		{
 			temp = asset;
 			break;
@@ -26,23 +25,31 @@ MenuLevel::MenuLevel()
 	// 메뉴 아이템 추가.
 	items.emplace_back(new MenuItem(
 		temp,
-		[]() { 
+		[]() {
+			Game::Get().GoLevel(LevelType::AStar);
+		}
+	));
+
+
+	for (Asset* asset : assets)
+	{
+		if (strcmp(asset->GetKey(), "RBTMenu") == 0)
+		{
+			temp = asset;
+			break;
+		}
+	}
+	// 메뉴 아이템 추가.
+	items.emplace_back(new MenuItem(
+		temp,
+		[]() {
 			Game::Get().GoLevel(LevelType::RedBlackTree);
 		}
 	));
 
 	for (Asset* asset : assets)
 	{
-		if (strcmp(asset->GetKey(), "ResetMenuImage") == 0)
-		{
-			temp = asset;
-			break;
-		}
-	}
-
-	for (Asset* asset : assets)
-	{
-		if (strcmp(asset->GetKey(), "ExitMenuImage") == 0)
+		if (strcmp(asset->GetKey(), "ExitMenu") == 0)
 		{
 			temp = asset;
 			break;
@@ -108,7 +115,7 @@ void MenuLevel::Render()
 	super::Render();
 
 	// 메뉴 제목 출력.
-	{
+	/*{
 		Asset* titleAsset = nullptr;
 		for (Asset* asset : assets)
 		{
@@ -139,7 +146,7 @@ void MenuLevel::Render()
 				);
 			}
 		}
-	}
+	}*/
 
 	// 메뉴 아이템 렌더링.
 	for (int ix = 0; ix < length; ++ix)
@@ -154,8 +161,8 @@ void MenuLevel::Render()
 		// 메뉴 텍스트 출력.
 		if (nullptr != items[ix]->menuText)
 		{
-			int xPos = (Engine::Get().GetWidth() / 2) - (items[ix]->menuText->GetWidth() / 2);
-			int yPos = 30 + 15 * ix;
+			int xPos = 3;
+			int yPos = 3 + 3 * ix;
 
 			int imageSize = items[ix]->menuText->GetHeight() * items[ix]->menuText->GetWidth();
 			for (int i = 0; i < imageSize; ++i)

@@ -1,0 +1,4 @@
+key=ExitMenu
+width=4
+height=1
+Quit
