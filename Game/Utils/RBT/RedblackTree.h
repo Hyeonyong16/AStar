@@ -30,6 +30,10 @@ public:
 	RBTNode* GetRoot() const { return root; }
 
 private:
+	RBTNode* FindMinNode(RBTNode* node);
+	
+
+private:
 
 	// 노드 생성 함수.
 	// 팩토리 패턴.
@@ -50,10 +54,10 @@ private:
 	void RestructureAfterInsert(RBTNode* newNode);
 
 	// 노드 삭제 재귀 함수
-	void DeleteRecursie(RBTNode* node);
+	RBTNode* DeleteRecursive(RBTNode* node, int data, bool& isRed);
 
 	// 노드 삭제 후 재정렬 처리 함수
-	void RestructureAfterDelete(RBTNode* node);
+	void RestructureAfterDelete(RBTNode* node, bool isRed);
 
 	// 좌회전 함수.
 	void RotateToLeft(RBTNode* node);

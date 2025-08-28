@@ -29,7 +29,7 @@ void RedBlackTreeLevel::Tick(float _deltaTime)
 		Game::Get().GoMenu();
 	}
 
-	if (command == CommandType::Insert)
+	if (command == CommandType::Insert || command == CommandType::Delete)
 	{
 		for (int i = 0; i < 10; ++i)
 		{
@@ -57,17 +57,20 @@ void RedBlackTreeLevel::Tick(float _deltaTime)
 			inputData[dataLength] = '\0';
 			if (inputData[0] != '\0')
 			{
-				rbt->Insert(atoi(inputData));
+				if(command == CommandType::Insert)
+				{
+					rbt->Insert(atoi(inputData));
+				}
+				else if (command == CommandType::Delete)
+				{
+					rbt->Delete(atoi(inputData));
+				}
 			}
 			command = CommandType::None;
 
 		}
 	}
-
-	else if (command == CommandType::Delete)
-	{
-
-	}
+	
 	
 	// 아무 상태 아닐때만 명령어 받기
 	else if(command == CommandType::None)
@@ -85,6 +88,11 @@ void RedBlackTreeLevel::Tick(float _deltaTime)
 		if (Input::Get().GetKeyDown('E'))
 		{
 			command = CommandType::Delete;
+			for (int i = 0; i < (sizeof(inputData) / sizeof(inputData[0])); ++i)
+			{
+				inputData[i] = '\0';
+			}
+			dataLength = 0;
 		}
 	}
 

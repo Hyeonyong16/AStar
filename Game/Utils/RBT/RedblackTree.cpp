@@ -108,7 +108,25 @@ bool RedBlackTree::Delete(int data)
 		return false;
 	}
 
+	// 지운 노드가 빨간색인지 여부
+	bool isRed = false;
+	// 기존 노드를 지우고 대신한 노드를 받아옴
+	RBTNode* deleteNode = DeleteRecursive(root, data, isRed);
+	if (deleteNode == nil)
+	{
+		// 1. 루트만 있던걸 지운 경우
+		if (root == nil)
+		{
+			return true;
+		}
+		// 2. 값을 못찾은 경우
+		else
+		{
+			return false;
+		}
+	}
 
+	RestructureAfterDelete(deleteNode, isRed);
 
 	return true;
 }
@@ -125,7 +143,7 @@ int RedBlackTree::GetLeftChildNodeNum(RBTNode* node) const
 		return 0;
 	}
 	int childNum = GetChildNodeNum(node->GetLeft());
-	return childNum == 0 ? 1 : childNum+1;
+	return childNum == 0 ? 1 : childNum + 1;
 }
 
 int RedBlackTree::GetRightChildNodeNum(RBTNode* node) const
@@ -135,7 +153,7 @@ int RedBlackTree::GetRightChildNodeNum(RBTNode* node) const
 		return 0;
 	}
 	int childNum = GetChildNodeNum(node->GetRight());
-	return childNum == 0 ? 1 : childNum+1;
+	return childNum == 0 ? 1 : childNum + 1;
 }
 
 int RedBlackTree::GetChildNodeNum(RBTNode* node) const
@@ -149,6 +167,16 @@ int RedBlackTree::GetChildNodeNum(RBTNode* node) const
 	childNum += 1;
 
 	return childNum;
+}
+
+RBTNode* RedBlackTree::FindMinNode(RBTNode* node)
+{
+	while (node->GetLeft() != nil)
+	{
+		node = node->GetLeft();
+	}
+
+	return node;
 }
 
 bool RedBlackTree::FindRecursive(int data, RBTNode* node, RBTNode*& outNode)
@@ -323,12 +351,233 @@ void RedBlackTree::RestructureAfterInsert(RBTNode* newNode)
 	root->SetColor(NodeColor::Black);
 }
 
-void RedBlackTree::DeleteRecursie(RBTNode* node)
+RBTNode* RedBlackTree::DeleteRecursive(RBTNode* node, int data, bool& isRed)
 {
+	if (node == nil)
+	{
+		return nil;
+	}
+
+	// 데이터 보다작은 경우.
+	if (node->GetData() > data)
+	{
+		DeleteRecursive(node->GetLeft(), data, isRed);
+	}
+
+	// 큰 경우.
+	else if (node->GetData() < data)
+	{
+		DeleteRecursive(node->GetRight(), data, isRed);
+	}
+
+	// 삭제할 노드 찾음.
+	else
+	{
+		// 삭제된 위치를 대신하는 노드 반환
+		RBTNode* tempNode = nil;
+
+		// 경우의 수1 (자식이 둘 다 없는 경우).
+		if (node->GetLeft() == nil && node->GetRight() == nil)
+		{
+			if (root == node)
+			{
+				root = nil;
+			}
+
+			else if (node == node->GetParent()->GetLeft())
+			{
+				node->GetParent()->SetLeft(nil);
+			}
+
+			else
+			{
+				node->GetParent()->SetRight(nil);
+			}
+
+			tempNode = nil;
+			if (node->GetColor() == NodeColor::Red)
+				isRed = true;
+			delete node;
+			return tempNode;
+		}
+
+		// 경우의 수2 (자식이 둘 다 있는 경우).
+		if (node->GetLeft() != nil && node->GetRight() != nil)
+		{
+			// 오른쪽 하위에서 가장 작은 값으로 대체.
+
+			// 삭제할 위치의 노드 값을 대체 값으로 할당.
+			node->SetData(
+				FindMinNode(node->GetRight())->GetData()
+			);
+
+			// 대체 당하는 노드를 삭제.
+			DeleteRecursive(FindMinNode(node->GetRight()), FindMinNode(node->GetRight())->GetData(), isRed);
+		}
+
+		// 경우의 수3 (자식이 하나만 있는 경우).
+		else
+		{
+			// 왼쪽만 있는 경우.
+			if (node->GetLeft() != nil)
+			{
+				if (root == node)
+				{
+					tempNode = node->GetLeft();
+					node->SetLeft(nil);
+				}
+
+				else
+				{
+					// 부모의 왼쪽 노드일 경우
+					if (node == node->GetParent()->GetLeft())
+					{
+						// 부모의 왼쪽 노드를 본인의 왼쪽 자식 노드로 변경
+						node->GetParent()->SetLeft(node->GetLeft());
+						node->GetLeft()->SetParent(node->GetParent());
+						tempNode = node->GetParent()->GetLeft();
+						//본인의 자식 노드를 nil 로 변경
+						node->SetLeft(nil);
+					}
+					// 부모의 오른쪽 노드일 경우
+					else
+					{
+						// 부모의 오른쪽 노드를 본인의 왼쪽 자식 노드로 변경
+						node->GetParent()->SetRight(node->GetLeft());
+						node->GetLeft()->SetParent(node->GetParent());
+						tempNode = node->GetParent()->GetRight();
+
+						//본인의 자식 노드를 nil 로 변경
+						node->SetLeft(nil);
+					}
+				}
+			}
+
+			// 오른쪽만 있는 경우.
+			else if (node->GetRight() != nil)
+			{
+				if (root == node)
+				{
+					tempNode = node->GetRight();
+					node->SetLeft(nil);
+				}
+
+				else
+				{
+					// 부모의 왼쪽 노드일 경우
+					if (node == node->GetParent()->GetLeft())
+					{
+						// 부모의 왼쪽 노드를 본인의 왼쪽 자식 노드로 변경
+						node->GetParent()->SetLeft(node->GetRight());
+						node->GetRight()->SetParent(node->GetParent());
+						tempNode = node->GetParent()->GetLeft();
+
+						//본인의 자식 노드를 nil 로 변경
+						node->SetRight(nil);
+					}
+					// 부모의 오른쪽 노드일 경우
+					else
+					{
+						// 부모의 오른쪽 노드를 본인의 왼쪽 자식 노드로 변경
+						node->GetParent()->SetRight(node->GetRight());
+						node->GetRight()->SetParent(node->GetParent());
+						tempNode = node->GetParent()->GetRight();
+
+						//본인의 자식 노드를 nil 로 변경
+						node->SetRight(nil);
+					}
+				}
+			}
+
+			if (root == node)
+			{
+				root = tempNode;
+			}
+
+			// 노드 삭제.
+			if (node->GetColor() == NodeColor::Red)
+				isRed = true;
+			delete node;
+			return tempNode;
+		}
+	}
 }
 
-void RedBlackTree::RestructureAfterDelete(RBTNode* node)
+void RedBlackTree::RestructureAfterDelete(RBTNode* node, bool isRed)
 {
+	// 삭제한 노드가 빨간색이면 삭제완료
+	if (isRed == true)
+	{
+		return;
+	}
+	// 대체하는 노드가 빨간색이면 더블블랙 X
+	if (node->GetColor() == NodeColor::Red)
+	{
+		node->SetColor(NodeColor::Black);
+		return;
+	}
+
+	while (node != root && node->GetColor() == NodeColor::Black)
+	{
+		RBTNode* siblingNode = nil;
+		// 부모의 왼쪽노드라면
+		if (node == node->GetParent()->GetLeft())
+		{
+			siblingNode = node->GetParent()->GetRight();
+		}
+		else
+		{
+			siblingNode = node->GetParent()->GetLeft();
+		}
+
+		// 형제 노드가 Red
+		if (siblingNode->GetColor() == NodeColor::Red)
+		{
+			siblingNode->SetColor(NodeColor::Black);
+			node->GetParent()->SetColor(NodeColor::Red);
+			
+			// 더블블랙노드가 어느쪽 자식인지에 맞춰서 회전
+			if (node == node->GetParent()->GetLeft())
+			{
+				RotateToLeft(node->GetParent());
+				siblingNode = node->GetParent()->GetRight();
+			}
+			else
+			{
+				RotateToRight(node->GetParent());
+				siblingNode = node->GetParent()->GetLeft();
+			}
+		}
+
+		// 형제가 black, 양쪽 자식이 Black
+		if (siblingNode->GetLeft()->GetColor() == NodeColor::Black
+			&& siblingNode->GetRight()->GetColor() == NodeColor::Black)
+		{
+			siblingNode->SetColor(NodeColor::Red);
+			node = node->GetParent();
+		}
+
+		// 형제가 Black, 한쪽만 Red
+		else
+		{
+			//Left 가 Red
+			if (siblingNode->GetLeft()->GetColor() == NodeColor::Red)
+			{
+				siblingNode->GetLeft()->SetColor(NodeColor::Black);
+				siblingNode->SetColor(NodeColor::Red);
+				RotateToRight(siblingNode);
+				siblingNode = node->GetParent()->GetRight();
+			}
+
+			// Right 가 Red
+			siblingNode->SetColor(node->GetParent()->GetColor());
+			node->GetParent()->SetColor(NodeColor::Black);
+			siblingNode->GetRight()->SetColor(NodeColor::Black);
+			RotateToLeft(node->GetParent());
+			node = root;
+		}
+	}
+
 }
 
 // 회전: 부모와 자손의 위치를 바꾸는 기능.
