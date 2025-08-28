@@ -27,7 +27,7 @@ MenuLevel::MenuLevel()
 	items.emplace_back(new MenuItem(
 		temp,
 		[]() { 
-			Game::Get().GoLevel(); 
+			Game::Get().GoLevel(LevelType::AStar);
 		}
 	));
 

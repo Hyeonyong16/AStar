@@ -1,6 +1,7 @@
 #include "Game.h"
 #include "Level/GameLevel.h"
 #include "Level/MenuLevel.h"
+#include "Level/RedBlackTreeLevel.h"
 
 Game* Game::instance = nullptr;
 
@@ -10,6 +11,7 @@ Game::Game()
 	// 레벨 추가.
 	menuLevel = new MenuLevel();
 	astarLevel = new GameLevel();
+	rbtLevel = new RedBlackTreeLevel();
 	AddLevel(menuLevel);
 }
 
@@ -31,14 +33,18 @@ void Game::GoMenu()
 	isLevelChangePreviousFrame = true;
 }
 
-void Game::GoLevel()
+void Game::GoLevel(LevelType type)
 {
 	// 화면 정리.
 	// clear screen 명령어 실행.
 	system("cls");
 
 	// 메뉴 레벨을 메인 레벨로 설정.
-	mainLevel = astarLevel;
+	if (type == LevelType::AStar)
+		mainLevel = astarLevel;
+
+	else if (type == LevelType::RedBlackTree)
+		mainLevel = rbtLevel;
 
 	// 기존 레벨 제거
 	isLevelChangePreviousFrame = true;
@@ -53,6 +59,7 @@ void Game::CleanUp()
 
 	SafeDelete(menuLevel);
 	SafeDelete(astarLevel);
+	SafeDelete(rbtLevel);
 	mainLevel = nullptr;
 
 	loadedLevels.clear();

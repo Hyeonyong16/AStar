@@ -24,9 +24,12 @@
     <ClCompile Include="Game\Game.cpp" />
     <ClCompile Include="Level\GameLevel.cpp" />
     <ClCompile Include="Level\MenuLevel.cpp" />
+    <ClCompile Include="Level\RedBlackTreeLevel.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Manager\UIManager.cpp" />
     <ClCompile Include="Utils\Astar.cpp" />
+    <ClCompile Include="Utils\RBT\RBTNode.cpp" />
+    <ClCompile Include="Utils\RBT\RedblackTree.cpp" />
     <ClCompile Include="Utils\Timer.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -35,9 +38,12 @@
     <ClInclude Include="Game\Game.h" />
     <ClInclude Include="Level\GameLevel.h" />
     <ClInclude Include="Level\MenuLevel.h" />
+    <ClInclude Include="Level\RedBlackTreeLevel.h" />
     <ClInclude Include="Manager\UIManager.h" />
     <ClInclude Include="Utils\AStar.h" />
     <ClInclude Include="Utils\Node.h" />
+    <ClInclude Include="Utils\RBT\RBTNode.h" />
+    <ClInclude Include="Utils\RBT\RedblackTree.h" />
     <ClInclude Include="Utils\Timer.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
