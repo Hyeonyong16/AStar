@@ -4,10 +4,13 @@
 #include <iostream>
 #include <Windows.h>
 #include <vector>
+
+class RedBlackTreeLevel;
 class RedBlackTree
 {
 public:
 	RedBlackTree();
+	RedBlackTree(RedBlackTreeLevel* ownLevel);
 	~RedBlackTree();
 
 	// 검색.
@@ -79,7 +82,7 @@ private:
 	// Nil 노드.
 	/*static */RBTNode* nil = nullptr;
 
-	//std::vector
+	RedBlackTreeLevel* ownLevel;
 };
 
 enum class TextColor

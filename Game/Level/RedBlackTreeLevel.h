@@ -2,6 +2,7 @@
 #include "Level/Level.h"
 #include "Utils/Timer.h"
 #include "Utils/RBT/RedblackTree.h"
+#include <vector>
 
 // Red-Black Tree 시각화 레벨
 // 1. 레벨에서 키입력을 받음
@@ -21,6 +22,35 @@ enum class CommandType
 	Sort,
 };
 
+enum class funcType
+{
+	Create,	// 최초 삽입까지 처리
+	Change_Color,
+	Rotate_Left,
+	Rotate_Right,
+
+};
+
+struct NodeFunc
+{
+	funcType type;
+	RBTNode* node1 = nullptr;
+	RBTNode* node2 = nullptr;
+	RBTNode* node3 = nullptr;
+	NodeColor color = NodeColor::Red;
+	bool insertLeft = false;
+	int data = 0;
+
+	NodeFunc(funcType type, bool insertLeft, RBTNode* node1, RBTNode* node2, RBTNode* node3, NodeColor color, int data)
+		: type(type), insertLeft(insertLeft), node1(node1), node2(node2), node3(node3), color(color), data(data)
+	{
+
+	}
+	~NodeFunc() = default;
+};
+
+class RBTAnimNode;
+
 class RedBlackTreeLevel : public Level
 {
 	RTTI_DECLARATIONS(RedBlackTreeLevel, Level)
@@ -34,9 +64,20 @@ public:
 	virtual void Tick(float _deltaTime) override;
 	virtual void Render() override;
 
+	void InsertAnim(NodeFunc* func);
+
 private:
 	void Print();
-	void PrintRecursive(RBTNode* node, int depth, int spaceCount);
+	void PrintRecursive(RBTAnimNode* node, int depth, int spaceCount);
+
+	void PlayAnim();
+	RBTAnimNode* FindAnimNodeByRef(RBTNode* ref);
+
+	int GetLeftChildNodeNum(RBTAnimNode* node) const;
+	int GetRightChildNodeNum(RBTAnimNode* node) const;
+	int GetChildNodeNum(RBTAnimNode* node) const;
+
+
 
 private:
 	// 레드 블랙 트리
@@ -52,5 +93,11 @@ private:
 
 	// 과정을 보여주기 위한 타이머
 	Timer rbtTimer;
-	float rbtRenderDelay = 0.3f;
+	float rbtRenderDelay = 1.0f;
+	bool isAnimPlaying = false;
+
+
+	std::vector<RBTAnimNode*> animNodes;
+
+	std::vector<NodeFunc*> animQueue;
 };

@@ -1,19 +1,34 @@
 #include "RedBlackTree.h"
+#include "Level/RedBlackTreeLevel.h"
 
 // 메모리 해제 함수.
-template<typename T>
-void SafeDelete(T*& resource)
-{
-	if (resource)
-	{
-		delete resource;
-		resource = nullptr;
-	}
-}
+//template<typename T>
+//void SafeDelete(T*& resource)
+//{
+//	if (resource)
+//	{
+//		delete resource;
+//		resource = nullptr;
+//	}
+//}
 
 //Node* RedBlackTree::nil = nullptr;
 
 RedBlackTree::RedBlackTree()
+{
+	// 초기 설정.
+	if (nil == nullptr)
+	{
+		// Nil 노드를 생성.
+		nil = new RBTNode(0, NodeColor::Black);
+	}
+
+	// 루트 노드를 Nil로 설정 (트리 빈 상태).
+	root = nil;
+}
+
+RedBlackTree::RedBlackTree(RedBlackTreeLevel* ownLevel)
+	: ownLevel(ownLevel)
 {
 	// 초기 설정.
 	if (nil == nullptr)
@@ -76,6 +91,12 @@ bool RedBlackTree::Insert(int data)
 	{
 		// 루트는 블랙.
 		root = CreateNode(data, NodeColor::Black);
+		ownLevel->InsertAnim(new NodeFunc(
+			funcType::Create,
+			false,
+			root, nullptr, nullptr,
+			NodeColor::Black, data
+		));
 		return true;
 	}
 
@@ -218,6 +239,12 @@ void RedBlackTree::InsertRecursive(RBTNode* node, RBTNode* newNode)
 
 			// 새 노드의 부모를 현재 노드로 지정.
 			newNode->SetParent(node);
+			ownLevel->InsertAnim(new NodeFunc(
+				funcType::Create,
+				true,
+				newNode, node, nullptr,
+				NodeColor::Red, newNode->GetData()
+			));
 			return;
 		}
 
@@ -236,6 +263,12 @@ void RedBlackTree::InsertRecursive(RBTNode* node, RBTNode* newNode)
 
 			// 새 노드의 부모를 현재 노드로 지정.
 			newNode->SetParent(node);
+			ownLevel->InsertAnim(new NodeFunc(
+				funcType::Create,
+				false,
+				newNode, node, nullptr,
+				NodeColor::Red, newNode->GetData()
+			));
 			return;
 		}
 
@@ -264,10 +297,28 @@ void RedBlackTree::RestructureAfterInsert(RBTNode* newNode)
 			if (uncle->GetColor() == NodeColor::Red)
 			{
 				// 부모/삼촌을 검정색으로 변경.
+				ownLevel->InsertAnim(new NodeFunc(
+					funcType::Change_Color,
+					false,
+					newNode->GetParent(), nullptr, nullptr,
+					NodeColor::Black, 0
+				));
+				ownLevel->InsertAnim(new NodeFunc(
+					funcType::Change_Color,
+					false,
+					uncle, nullptr, nullptr,
+					NodeColor::Black, 0
+				));
 				newNode->GetParent()->SetColor(NodeColor::Black);
 				uncle->SetColor(NodeColor::Black);
 
 				// 할아버지를 빨간색으로 변경.
+				ownLevel->InsertAnim(new NodeFunc(
+					funcType::Change_Color,
+					false,
+					newNode->GetParent()->GetParent(), nullptr, nullptr,
+					NodeColor::Red, 0
+				));
 				newNode->GetParent()->GetParent()->SetColor(NodeColor::Red);
 
 				// 기준을 할아버지로 변경.
@@ -286,16 +337,41 @@ void RedBlackTree::RestructureAfterInsert(RBTNode* newNode)
 				// 좌회전.
 				// 부모를 중심으로 회전 처리 (일직선으로 만들기 위해).
 				newNode = newNode->GetParent();
+				ownLevel->InsertAnim(new NodeFunc(
+					funcType::Rotate_Left,
+					false,
+					newNode, nullptr, nullptr,
+					NodeColor::Red, 0
+				));
 				RotateToLeft(newNode);
 			}
 
 			// Case3: 부모와 나의 위치가 일직선일 때.
 			// 부모를 Black, 할아버지를 Red로 변경 후, 
 			// 할아버지를 기준으로 회전.
+			ownLevel->InsertAnim(new NodeFunc(
+				funcType::Change_Color,
+				false,
+				newNode->GetParent(), nullptr, nullptr,
+				NodeColor::Black, 0
+			));
+			ownLevel->InsertAnim(new NodeFunc(
+				funcType::Change_Color,
+				false,
+				newNode->GetParent()->GetParent(), nullptr, nullptr,
+				NodeColor::Red, 0
+			));
 			newNode->GetParent()->SetColor(NodeColor::Black);
 			newNode->GetParent()->GetParent()->SetColor(NodeColor::Red);
 
+
 			// 우회전.
+			ownLevel->InsertAnim(new NodeFunc(
+				funcType::Rotate_Right,
+				false,
+				newNode->GetParent()->GetParent(), nullptr, nullptr,
+				NodeColor::Red, 0
+			));
 			RotateToRight(newNode->GetParent()->GetParent());
 		}
 
@@ -311,10 +387,29 @@ void RedBlackTree::RestructureAfterInsert(RBTNode* newNode)
 			if (uncle->GetColor() == NodeColor::Red)
 			{
 				// 부모/삼촌을 검정색으로 변경.
+				ownLevel->InsertAnim(new NodeFunc(
+					funcType::Change_Color,
+					false,
+					newNode->GetParent(), nullptr, nullptr,
+					NodeColor::Black, 0
+				));
+				ownLevel->InsertAnim(new NodeFunc(
+					funcType::Change_Color,
+					false,
+					uncle, nullptr, nullptr,
+					NodeColor::Black, 0
+				));
 				newNode->GetParent()->SetColor(NodeColor::Black);
 				uncle->SetColor(NodeColor::Black);
 
+
 				// 할아버지를 빨간색으로 변경.
+				ownLevel->InsertAnim(new NodeFunc(
+					funcType::Change_Color,
+					false,
+					newNode->GetParent()->GetParent(), nullptr, nullptr,
+					NodeColor::Red, 0
+				));
 				newNode->GetParent()->GetParent()->SetColor(NodeColor::Red);
 
 				// 기준을 할아버지로 변경.
@@ -333,22 +428,54 @@ void RedBlackTree::RestructureAfterInsert(RBTNode* newNode)
 				// 우회전.
 				// 부모를 중심으로 회전 처리 (일직선으로 만들기 위해).
 				newNode = newNode->GetParent();
+				
+				ownLevel->InsertAnim(new NodeFunc(
+					funcType::Rotate_Right,
+					false,
+					newNode, nullptr, nullptr,
+					NodeColor::Red, 0
+				));
 				RotateToRight(newNode);
 			}
 
 			// Case3: 부모와 나의 위치가 일직선일 때.
 			// 부모를 Black, 할아버지를 Red로 변경 후, 
 			// 할아버지를 기준으로 회전.
+			ownLevel->InsertAnim(new NodeFunc(
+				funcType::Change_Color,
+				false,
+				newNode->GetParent(), nullptr, nullptr,
+				NodeColor::Black, 0
+			));
+			ownLevel->InsertAnim(new NodeFunc(
+				funcType::Change_Color,
+				false,
+				newNode->GetParent()->GetParent(), nullptr, nullptr,
+				NodeColor::Red, 0
+			));
 			newNode->GetParent()->SetColor(NodeColor::Black);
 			newNode->GetParent()->GetParent()->SetColor(NodeColor::Red);
 
+
 			// 좌회전.
+			ownLevel->InsertAnim(new NodeFunc(
+				funcType::Rotate_Left,
+				false,
+				newNode->GetParent()->GetParent(), nullptr, nullptr,
+				NodeColor::Red, 0
+			));
 			RotateToLeft(newNode->GetParent()->GetParent());
 		}
 	}
 
 	// 루트 노드 색상 정리.
 	root->SetColor(NodeColor::Black);
+	ownLevel->InsertAnim(new NodeFunc(
+		funcType::Change_Color,
+		false,
+		root, nullptr, nullptr,
+		NodeColor::Black, 0
+	));
 }
 
 RBTNode* RedBlackTree::DeleteRecursive(RBTNode* node, int data, bool& isRed)
@@ -397,7 +524,7 @@ RBTNode* RedBlackTree::DeleteRecursive(RBTNode* node, int data, bool& isRed)
 			tempNode = nil;
 			if (node->GetColor() == NodeColor::Red)
 				isRed = true;
-			delete node;
+			//delete node;
 			return tempNode;
 		}
 
@@ -497,7 +624,7 @@ RBTNode* RedBlackTree::DeleteRecursive(RBTNode* node, int data, bool& isRed)
 			// 노드 삭제.
 			if (node->GetColor() == NodeColor::Red)
 				isRed = true;
-			delete node;
+			//delete node;
 			return tempNode;
 		}
 	}
