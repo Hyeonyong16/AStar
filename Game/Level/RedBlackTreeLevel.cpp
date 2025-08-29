@@ -155,7 +155,7 @@ void RedBlackTreeLevel::InsertAnim(NodeFunc* func)
 
 void RedBlackTreeLevel::Print()
 {
-	//PrintRecursive(rbt->GetRoot(), 0, 0);
+	PrintRecursive(rbt->GetRoot(), 0, 0);
 	RBTAnimNode* root = nullptr;
 	for (int i = 0; i < animNodes.size(); ++i)
 	{
@@ -169,53 +169,55 @@ void RedBlackTreeLevel::Print()
 	
 }
 
-//void RedBlackTreeLevel::PrintRecursive(RBTNode* node, int depth, int spaceCount)
-//{
-//	// 탈출 조건.
-//	if (node == rbt->GetNil())
-//	{
-//		return;
-//	}
-//	// 현재 노드 값 출력.
-//
-//	int spaceNum = 0;
-//
-//	// 현재 루트 노드라면
-//	if (node->GetParent() == nullptr)
-//	{
-//		spaceNum = rbt->GetRightChildNodeNum(node);
-//	}
-//
-//	// 루트 노드가 아님
-//	else
-//	{
-//		// 부모의 왼쪽 노드라면
-//		if (node == node->GetParent()->GetLeft())
-//		{
-//			spaceNum = spaceCount - rbt->GetRightChildNodeNum(node);
-//		}
-//
-//		// 부모의 오른쪽 노드라면
-//		else
-//		{
-//			spaceNum = spaceCount + rbt->GetLeftChildNodeNum(node);
-//		}
-//	}
-//	std::string buffer = std::to_string(node->GetData());
-//
-//	Color nodeColor = Color::BlueIntensity;
-//	if (node->GetColor() == NodeColor::Red)
-//	{
-//		nodeColor = Color::RedIntensity;
-//	}
-//
-//	//Engine::Get().WriteToBuffer(Vector2(depth * 5, spaceNum + 2), buffer.c_str(), nodeColor);
-//	Engine::Get().WriteToBuffer(Vector2(spaceNum * 4, depth * 3 + 5), buffer.c_str(), nodeColor);
-//
-//	// 하위 노드 출력.
-//	PrintRecursive(node->GetLeft(), depth + 1, spaceNum);
-//	PrintRecursive(node->GetRight(), depth + 1, spaceNum);
-//}
+void RedBlackTreeLevel::PrintRecursive(RBTNode* node, int depth, int spaceCount)
+{
+	// 탈출 조건.
+	if (node == rbt->GetNil()
+		|| node->GetData() == 0
+		)
+	{
+		return;
+	}
+	// 현재 노드 값 출력.
+
+	int spaceNum = 0;
+
+	// 현재 루트 노드라면
+	if (node->GetParent() == nullptr)
+	{
+		spaceNum = rbt->GetRightChildNodeNum(node);
+	}
+
+	// 루트 노드가 아님
+	else
+	{
+		// 부모의 왼쪽 노드라면
+		if (node == node->GetParent()->GetLeft())
+		{
+			spaceNum = spaceCount - rbt->GetRightChildNodeNum(node);
+		}
+
+		// 부모의 오른쪽 노드라면
+		else
+		{
+			spaceNum = spaceCount + rbt->GetLeftChildNodeNum(node);
+		}
+	}
+	std::string buffer = std::to_string(node->GetData());
+
+	Color nodeColor = Color::BlueIntensity;
+	if (node->GetColor() == NodeColor::Red)
+	{
+		nodeColor = Color::RedIntensity;
+	}
+
+	//Engine::Get().WriteToBuffer(Vector2(depth * 5, spaceNum + 2), buffer.c_str(), nodeColor);
+	Engine::Get().WriteToBuffer(Vector2(spaceNum * 4, depth * 2 + 45), buffer.c_str(), nodeColor);
+
+	// 하위 노드 출력.
+	PrintRecursive(node->GetLeft(), depth + 1, spaceNum);
+	PrintRecursive(node->GetRight(), depth + 1, spaceNum);
+}
 
 void RedBlackTreeLevel::PrintRecursive(RBTAnimNode* node, int depth, int spaceCount)
 {
@@ -258,7 +260,7 @@ void RedBlackTreeLevel::PrintRecursive(RBTAnimNode* node, int depth, int spaceCo
 	}
 
 	//Engine::Get().WriteToBuffer(Vector2(depth * 5, spaceNum + 2), buffer.c_str(), nodeColor);
-	Engine::Get().WriteToBuffer(Vector2(spaceNum * 4, depth * 3 + 5), buffer.c_str(), nodeColor);
+	Engine::Get().WriteToBuffer(Vector2(spaceNum * 4, depth * 2 + 5), buffer.c_str(), nodeColor);
 
 	// 하위 노드 출력.
 	PrintRecursive(node->GetLeftNode(), depth + 1, spaceNum);
@@ -310,6 +312,104 @@ void RedBlackTreeLevel::PlayAnim()
 			temp->SetParentNode(parent);
 			animNodes.emplace_back(temp);
 		}
+		break;
+	}
+
+	case funcType::Delete:
+	{
+		RBTAnimNode* temp = FindAnimNodeByRef(animQueue[i]->node1);
+		if (temp->GetLeftNode() == nullptr && temp->GetRightNode() == nullptr)
+		{
+			// 루트 노드라면
+			if (temp->GetParentNode() == nullptr)
+			{
+
+			}
+
+			else
+			{
+				if (temp->GetParentNode()->GetLeftNode() == temp)
+				{
+					temp->GetParentNode()->SetLeftNode(nullptr);
+				}
+				else
+				{
+					temp->GetParentNode()->SetRightNode(nullptr);
+				}
+			}
+		}
+		
+		// 오른쪽만 있는 경우
+		else if (temp->GetLeftNode() == nullptr && temp->GetRightNode() != nullptr)
+		{
+			// 루트노드인 경우
+			if (temp->GetParentNode() == nullptr)
+			{
+				temp->SetLeftNode(nullptr);
+			}
+			else
+			{
+				if (temp == temp->GetParentNode()->GetLeftNode())
+				{
+					temp->GetParentNode()->SetLeftNode(temp->GetRightNode());
+					temp->GetRightNode()->SetParentNode(temp->GetParentNode());
+					temp->SetRightNode(nullptr);
+				}
+				else
+				{
+					temp->GetParentNode()->SetRightNode(temp->GetRightNode());
+					temp->GetRightNode()->SetParentNode(temp->GetParentNode());
+					temp->SetRightNode(nullptr);
+				}
+			}
+		}
+
+
+		// 왼쪽만 있는 경우
+		else if (temp->GetLeftNode() != nullptr && temp->GetRightNode() == nullptr)
+		{
+			// 루트노드인 경우
+			if (temp->GetParentNode() == nullptr)
+			{
+				temp->SetRightNode(nullptr);
+			}
+			else
+			{
+				if (temp == temp->GetParentNode()->GetLeftNode())
+				{
+					temp->GetParentNode()->SetLeftNode(temp->GetLeftNode());
+					temp->GetLeftNode()->SetParentNode(temp->GetParentNode());
+					temp->SetLeftNode(nullptr);
+				}
+				else
+				{
+					temp->GetParentNode()->SetRightNode(temp->GetLeftNode());
+					temp->GetLeftNode()->SetParentNode(temp->GetParentNode());
+					temp->SetRightNode(nullptr);
+				}
+			}
+		}
+
+		std::vector<RBTAnimNode*>::iterator iter = animNodes.begin();
+		for (; iter < animNodes.end(); ++iter)
+		{
+			if ((*iter)->GetReferenceNode() == animQueue[i]->node1)
+			{
+				SafeDelete(*iter);
+				animNodes.erase(iter);
+				break;
+			}
+		}
+		SafeDelete(animQueue[i]->node1);
+
+		break;
+	}
+
+	case funcType::Change_Data:
+	{
+		RBTAnimNode* temp = FindAnimNodeByRef(animQueue[i]->node1);
+		temp->SetData(animQueue[i]->data);
+
 		break;
 	}
 

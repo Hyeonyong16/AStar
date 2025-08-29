@@ -15,6 +15,7 @@
 //Node* RedBlackTree::nil = nullptr;
 
 RedBlackTree::RedBlackTree()
+	: ownLevel(nullptr)
 {
 	// 초기 설정.
 	if (nil == nullptr)
@@ -133,22 +134,33 @@ bool RedBlackTree::Delete(int data)
 	bool isRed = false;
 	// 기존 노드를 지우고 대신한 노드를 받아옴
 	RBTNode* deleteNode = DeleteRecursive(root, data, isRed);
-	if (deleteNode == nil)
+	if (deleteNode->GetParent() == nullptr 
+		&& deleteNode->GetRight() == nullptr 
+		&& deleteNode->GetLeft() == nullptr)
 	{
 		// 1. 루트만 있던걸 지운 경우
 		if (root == nil)
 		{
 			return true;
 		}
-		// 2. 값을 못찾은 경우
-		else
-		{
-			return false;
-		}
 	}
 
-	RestructureAfterDelete(deleteNode, isRed);
+	if(isRed == false)
+		RestructureAfterDelete(deleteNode, isRed);
+	node = nullptr;
 
+	FindTempNilNode(root, node);
+	if (node != nullptr)
+	{
+		if (node == node->GetParent()->GetLeft())
+		{
+			node->GetParent()->SetLeft(nil);
+		}
+		else
+		{
+			node->GetParent()->SetRight(nil);
+		}
+	}
 	return true;
 }
 
@@ -169,7 +181,7 @@ int RedBlackTree::GetLeftChildNodeNum(RBTNode* node) const
 
 int RedBlackTree::GetRightChildNodeNum(RBTNode* node) const
 {
-	if (node == nil)
+	if (node == nil || (node->GetData() == 0 && node->GetLeft() == nullptr && node->GetRight() == nullptr))
 	{
 		return 0;
 	}
@@ -179,7 +191,7 @@ int RedBlackTree::GetRightChildNodeNum(RBTNode* node) const
 
 int RedBlackTree::GetChildNodeNum(RBTNode* node) const
 {
-	if (node == nil)
+	if (node == nil || (node->GetData() == 0 && node->GetLeft() == nullptr && node->GetRight() == nullptr))
 	{
 		return 0;
 	}
@@ -192,7 +204,11 @@ int RedBlackTree::GetChildNodeNum(RBTNode* node) const
 
 RBTNode* RedBlackTree::FindMinNode(RBTNode* node)
 {
-	while (node->GetLeft() != nil)
+	while (node->GetLeft() != nil || 
+		!(node->GetLeft()->GetData() == 0 
+			&& node->GetLeft()->GetLeft() == nullptr 
+			&& node->GetLeft()->GetRight() == nullptr
+			))
 	{
 		node = node->GetLeft();
 	}
@@ -224,6 +240,31 @@ bool RedBlackTree::FindRecursive(int data, RBTNode* node, RBTNode*& outNode)
 
 	// 큰 경우.
 	return FindRecursive(data, node->GetRight(), outNode);
+}
+
+bool RedBlackTree::FindTempNilNode(RBTNode* node, RBTNode*& outNode)
+{
+	// 탈출 조건.
+	if (node == nil)
+	{
+		return false;
+	}
+
+	// 값 확인 (검색 성공 확인).
+	if (node->GetData() == 0 && node->GetParent() != nullptr)
+	{
+		outNode = node;
+		return true;
+	}
+
+	if(outNode == nullptr)
+	{
+		FindTempNilNode(node->GetLeft(), outNode);
+	}
+	if(outNode == nullptr)
+	{
+		FindTempNilNode(node->GetRight(), outNode);
+	}
 }
 
 void RedBlackTree::InsertRecursive(RBTNode* node, RBTNode* newNode)
@@ -501,7 +542,10 @@ RBTNode* RedBlackTree::DeleteRecursive(RBTNode* node, int data, bool& isRed)
 	else
 	{
 		// 삭제된 위치를 대신하는 노드 반환
-		RBTNode* tempNode = nil;
+		RBTNode* tempNode = new RBTNode(0, NodeColor::Black);
+		tempNode->SetLeft(nullptr);
+		tempNode->SetRight(nullptr);
+		tempNode->SetParent(nullptr);
 
 		// 경우의 수1 (자식이 둘 다 없는 경우).
 		if (node->GetLeft() == nil && node->GetRight() == nil)
@@ -513,15 +557,22 @@ RBTNode* RedBlackTree::DeleteRecursive(RBTNode* node, int data, bool& isRed)
 
 			else if (node == node->GetParent()->GetLeft())
 			{
-				node->GetParent()->SetLeft(nil);
+				node->GetParent()->SetLeft(tempNode);
 			}
 
 			else
 			{
-				node->GetParent()->SetRight(nil);
+				node->GetParent()->SetRight(tempNode);
 			}
+			
 
-			tempNode = nil;
+			ownLevel->InsertAnim(new NodeFunc(
+				funcType::Delete,
+				true,
+				node, nullptr, nullptr,
+				NodeColor::Black, 0
+			));
+			tempNode->SetParent(node->GetParent());
 			if (node->GetColor() == NodeColor::Red)
 				isRed = true;
 			//delete node;
@@ -534,6 +585,12 @@ RBTNode* RedBlackTree::DeleteRecursive(RBTNode* node, int data, bool& isRed)
 			// 오른쪽 하위에서 가장 작은 값으로 대체.
 
 			// 삭제할 위치의 노드 값을 대체 값으로 할당.
+			ownLevel->InsertAnim(new NodeFunc(
+				funcType::Change_Data,
+				true,
+				node, nullptr, nullptr,
+				NodeColor::Black, FindMinNode(node->GetRight())->GetData()
+			));
 			node->SetData(
 				FindMinNode(node->GetRight())->GetData()
 			);
@@ -621,7 +678,12 @@ RBTNode* RedBlackTree::DeleteRecursive(RBTNode* node, int data, bool& isRed)
 				root = tempNode;
 			}
 
-			// 노드 삭제.
+			ownLevel->InsertAnim(new NodeFunc(
+				funcType::Delete,
+				true,
+				node, nullptr, nullptr,
+				NodeColor::Black, 0
+			));
 			if (node->GetColor() == NodeColor::Red)
 				isRed = true;
 			//delete node;
@@ -632,79 +694,309 @@ RBTNode* RedBlackTree::DeleteRecursive(RBTNode* node, int data, bool& isRed)
 
 void RedBlackTree::RestructureAfterDelete(RBTNode* node, bool isRed)
 {
-	// 삭제한 노드가 빨간색이면 삭제완료
-	if (isRed == true)
-	{
-		return;
-	}
-	// 대체하는 노드가 빨간색이면 더블블랙 X
-	if (node->GetColor() == NodeColor::Red)
-	{
-		node->SetColor(NodeColor::Black);
-		return;
-	}
-
 	while (node != root && node->GetColor() == NodeColor::Black)
 	{
+		// 형제 노드 지정
 		RBTNode* siblingNode = nil;
 		// 부모의 왼쪽노드라면
 		if (node == node->GetParent()->GetLeft())
 		{
 			siblingNode = node->GetParent()->GetRight();
-		}
-		else
-		{
-			siblingNode = node->GetParent()->GetLeft();
-		}
 
-		// 형제 노드가 Red
-		if (siblingNode->GetColor() == NodeColor::Red)
-		{
-			siblingNode->SetColor(NodeColor::Black);
-			node->GetParent()->SetColor(NodeColor::Red);
-			
-			// 더블블랙노드가 어느쪽 자식인지에 맞춰서 회전
-			if (node == node->GetParent()->GetLeft())
+			// 형제 노드가 Red
+			if (siblingNode->GetColor() == NodeColor::Red)
 			{
+				ownLevel->InsertAnim(new NodeFunc(
+					funcType::Change_Color,
+					true,
+					siblingNode, nullptr, nullptr,
+					NodeColor::Black, 0
+				));
+				ownLevel->InsertAnim(new NodeFunc(
+					funcType::Change_Color,
+					true,
+					node->GetParent(), nullptr, nullptr,
+					NodeColor::Red, 0
+				));
+				siblingNode->SetColor(NodeColor::Black);
+				node->GetParent()->SetColor(NodeColor::Red);
+
+				ownLevel->InsertAnim(new NodeFunc(
+					funcType::Rotate_Left,
+					true,
+					node->GetParent(), nullptr, nullptr,
+					NodeColor::Red, 0
+				));
 				RotateToLeft(node->GetParent());
 				siblingNode = node->GetParent()->GetRight();
 			}
+
+			// 형제가 black, 양쪽 자식이 Black
+			if (siblingNode->GetLeft()->GetColor() == NodeColor::Black
+				&& siblingNode->GetRight()->GetColor() == NodeColor::Black)
+			{
+
+				ownLevel->InsertAnim(new NodeFunc(
+					funcType::Change_Color,
+					true,
+					siblingNode, nullptr, nullptr,
+					NodeColor::Red, 0
+				));
+				siblingNode->SetColor(NodeColor::Red);
+				node = node->GetParent();
+			}
+
+			// 형제가 Black, 한쪽만 Red
+			else if (siblingNode->GetRight()->GetColor() == NodeColor::Black)
+			{
+				ownLevel->InsertAnim(new NodeFunc(
+					funcType::Change_Color,
+					true,
+					siblingNode->GetLeft(), nullptr, nullptr,
+					NodeColor::Black, 0
+				));
+				ownLevel->InsertAnim(new NodeFunc(
+					funcType::Change_Color,
+					true,
+					siblingNode, nullptr, nullptr,
+					NodeColor::Red, 0
+				));
+				siblingNode->GetLeft()->SetColor(NodeColor::Black);
+				siblingNode->SetColor(NodeColor::Red);
+
+				ownLevel->InsertAnim(new NodeFunc(
+					funcType::Rotate_Right,
+					true,
+					siblingNode, nullptr, nullptr,
+					NodeColor::Red, 0
+				));
+				RotateToRight(siblingNode);
+
+				siblingNode = node->GetParent()->GetRight();
+
+
+				ownLevel->InsertAnim(new NodeFunc(
+					funcType::Change_Color,
+					true,
+					siblingNode, nullptr, nullptr,
+					node->GetParent()->GetColor(), 0
+				));
+				ownLevel->InsertAnim(new NodeFunc(
+					funcType::Change_Color,
+					true,
+					node->GetParent(), nullptr, nullptr,
+					NodeColor::Black, 0
+				));
+				ownLevel->InsertAnim(new NodeFunc(
+					funcType::Change_Color,
+					true,
+					siblingNode->GetRight(), nullptr, nullptr,
+					NodeColor::Black, 0
+				));
+				siblingNode->SetColor(node->GetParent()->GetColor());
+				node->GetParent()->SetColor(NodeColor::Black);
+				siblingNode->GetRight()->SetColor(NodeColor::Black);
+
+				ownLevel->InsertAnim(new NodeFunc(
+					funcType::Rotate_Left,
+					true,
+					node->GetParent(), nullptr, nullptr,
+					NodeColor::Black, 0
+				));
+				RotateToLeft(node->GetParent());
+
+				node = root;
+			}
+
 			else
 			{
+				ownLevel->InsertAnim(new NodeFunc(
+					funcType::Change_Color,
+					true,
+					siblingNode, nullptr, nullptr,
+					node->GetParent()->GetColor(), 0
+				));
+				ownLevel->InsertAnim(new NodeFunc(
+					funcType::Change_Color,
+					true,
+					node->GetParent(), nullptr, nullptr,
+					NodeColor::Black, 0
+				));
+				ownLevel->InsertAnim(new NodeFunc(
+					funcType::Change_Color,
+					true,
+					siblingNode->GetRight(), nullptr, nullptr,
+					NodeColor::Black, 0
+				));
+				siblingNode->SetColor(node->GetParent()->GetColor());
+				node->GetParent()->SetColor(NodeColor::Black);
+				siblingNode->GetRight()->SetColor(NodeColor::Black);
+
+				ownLevel->InsertAnim(new NodeFunc(
+					funcType::Rotate_Left,
+					true,
+					node->GetParent(), nullptr, nullptr,
+					NodeColor::Black, 0
+				));
+				RotateToLeft(node->GetParent());
+
+				node = root;
+			}
+		}
+
+		else
+		{
+			siblingNode = node->GetParent()->GetLeft();
+
+			// 형제 노드가 Red
+			if (siblingNode->GetColor() == NodeColor::Red)
+			{
+				ownLevel->InsertAnim(new NodeFunc(
+					funcType::Change_Color,
+					true,
+					siblingNode, nullptr, nullptr,
+					NodeColor::Black, 0
+				));
+				ownLevel->InsertAnim(new NodeFunc(
+					funcType::Change_Color,
+					true,
+					node->GetParent(), nullptr, nullptr,
+					NodeColor::Red, 0
+				));
+				siblingNode->SetColor(NodeColor::Black);
+				node->GetParent()->SetColor(NodeColor::Red);
+
+
+				ownLevel->InsertAnim(new NodeFunc(
+					funcType::Rotate_Right,
+					true,
+					node->GetParent(), nullptr, nullptr,
+					NodeColor::Red, 0
+				));
 				RotateToRight(node->GetParent());
 				siblingNode = node->GetParent()->GetLeft();
 			}
-		}
 
-		// 형제가 black, 양쪽 자식이 Black
-		if (siblingNode->GetLeft()->GetColor() == NodeColor::Black
-			&& siblingNode->GetRight()->GetColor() == NodeColor::Black)
-		{
-			siblingNode->SetColor(NodeColor::Red);
-			node = node->GetParent();
-		}
-
-		// 형제가 Black, 한쪽만 Red
-		else
-		{
-			//Left 가 Red
-			if (siblingNode->GetLeft()->GetColor() == NodeColor::Red)
+			// 형제가 black, 양쪽 자식이 Black
+			if (siblingNode->GetLeft()->GetColor() == NodeColor::Black
+				&& siblingNode->GetRight()->GetColor() == NodeColor::Black)
 			{
-				siblingNode->GetLeft()->SetColor(NodeColor::Black);
+				ownLevel->InsertAnim(new NodeFunc(
+					funcType::Change_Color,
+					true,
+					siblingNode, nullptr, nullptr,
+					NodeColor::Red, 0
+				));
 				siblingNode->SetColor(NodeColor::Red);
-				RotateToRight(siblingNode);
-				siblingNode = node->GetParent()->GetRight();
+				node = node->GetParent();
 			}
 
-			// Right 가 Red
-			siblingNode->SetColor(node->GetParent()->GetColor());
-			node->GetParent()->SetColor(NodeColor::Black);
-			siblingNode->GetRight()->SetColor(NodeColor::Black);
-			RotateToLeft(node->GetParent());
-			node = root;
+			// 형제가 Black, 한쪽만 Red
+			else if (siblingNode->GetLeft()->GetColor() == NodeColor::Black)
+			{
+				ownLevel->InsertAnim(new NodeFunc(
+					funcType::Change_Color,
+					true,
+					siblingNode->GetRight(), nullptr, nullptr,
+					NodeColor::Black, 0
+				));
+				ownLevel->InsertAnim(new NodeFunc(
+					funcType::Change_Color,
+					true,
+					siblingNode, nullptr, nullptr,
+					NodeColor::Red, 0
+				));
+				siblingNode->GetRight()->SetColor(NodeColor::Black);
+				siblingNode->SetColor(NodeColor::Red);
+
+				ownLevel->InsertAnim(new NodeFunc(
+					funcType::Rotate_Left,
+					true,
+					siblingNode, nullptr, nullptr,
+					NodeColor::Red, 0
+				));
+				RotateToLeft(siblingNode);
+
+				siblingNode = node->GetParent()->GetLeft();
+
+				ownLevel->InsertAnim(new NodeFunc(
+					funcType::Change_Color,
+					true,
+					siblingNode, nullptr, nullptr,
+					node->GetParent()->GetColor(), 0
+				));
+				ownLevel->InsertAnim(new NodeFunc(
+					funcType::Change_Color,
+					true,
+					node->GetParent(), nullptr, nullptr,
+					NodeColor::Black, 0
+				));
+				ownLevel->InsertAnim(new NodeFunc(
+					funcType::Change_Color,
+					true,
+					siblingNode->GetLeft(), nullptr, nullptr,
+					NodeColor::Black, 0
+				));
+				siblingNode->SetColor(node->GetParent()->GetColor());
+				node->GetParent()->SetColor(NodeColor::Black);
+				siblingNode->GetLeft()->SetColor(NodeColor::Black);
+
+
+				ownLevel->InsertAnim(new NodeFunc(
+					funcType::Rotate_Right,
+					true,
+					node->GetParent(), nullptr, nullptr,
+					NodeColor::Black, 0
+				));
+				RotateToRight(node->GetParent());
+
+				node = root;
+			}
+
+			else
+			{
+				ownLevel->InsertAnim(new NodeFunc(
+					funcType::Change_Color,
+					true,
+					siblingNode, nullptr, nullptr,
+					node->GetParent()->GetColor(), 0
+				));
+				ownLevel->InsertAnim(new NodeFunc(
+					funcType::Change_Color,
+					true,
+					node->GetParent(), nullptr, nullptr,
+					NodeColor::Black, 0
+				));
+				ownLevel->InsertAnim(new NodeFunc(
+					funcType::Change_Color,
+					true,
+					siblingNode->GetLeft(), nullptr, nullptr,
+					NodeColor::Black, 0
+				));
+				siblingNode->SetColor(node->GetParent()->GetColor());
+				node->GetParent()->SetColor(NodeColor::Black);
+				siblingNode->GetLeft()->SetColor(NodeColor::Black);
+
+				ownLevel->InsertAnim(new NodeFunc(
+					funcType::Rotate_Right,
+					true,
+					node->GetParent(), nullptr, nullptr,
+					NodeColor::Black, 0
+				));
+				RotateToRight(node->GetParent());
+
+				node = root;
+			}
 		}
 	}
 
+	ownLevel->InsertAnim(new NodeFunc(
+		funcType::Change_Color,
+		true,
+		node, nullptr, nullptr,
+		NodeColor::Black, 0
+	));
+	node->SetColor(NodeColor::Black);
 }
 
 // 회전: 부모와 자손의 위치를 바꾸는 기능.

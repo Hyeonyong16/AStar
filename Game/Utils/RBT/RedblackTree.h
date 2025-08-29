@@ -49,6 +49,7 @@ private:
 	/// <param name="node">현재 검색하는 노드</param>
 	/// <param name="outNode">검색한 노드를 출력할 파라미터</param>
 	bool FindRecursive(int data, RBTNode* node, RBTNode*& outNode);
+	bool FindTempNilNode(RBTNode* node, RBTNode*& outNode);
 
 	// 노드 삽입 재귀 함수.
 	void InsertRecursive(RBTNode* node, RBTNode* newNode);

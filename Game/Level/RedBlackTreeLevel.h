@@ -25,6 +25,8 @@ enum class CommandType
 enum class funcType
 {
 	Create,	// 최초 삽입까지 처리
+	Delete,
+	Change_Data,
 	Change_Color,
 	Rotate_Left,
 	Rotate_Right,
@@ -69,6 +71,7 @@ public:
 private:
 	void Print();
 	void PrintRecursive(RBTAnimNode* node, int depth, int spaceCount);
+	void PrintRecursive(RBTNode* node, int depth, int spaceCount);
 
 	void PlayAnim();
 	RBTAnimNode* FindAnimNodeByRef(RBTNode* ref);
@@ -93,7 +96,7 @@ private:
 
 	// 과정을 보여주기 위한 타이머
 	Timer rbtTimer;
-	float rbtRenderDelay = 1.0f;
+	float rbtRenderDelay = 0.1f;
 	bool isAnimPlaying = false;
 
 
