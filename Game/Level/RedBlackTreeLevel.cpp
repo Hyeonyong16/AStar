@@ -212,7 +212,7 @@ void RedBlackTreeLevel::PrintRecursive(RBTNode* node, int depth, int spaceCount)
 	}
 
 	//Engine::Get().WriteToBuffer(Vector2(depth * 5, spaceNum + 2), buffer.c_str(), nodeColor);
-	Engine::Get().WriteToBuffer(Vector2(spaceNum * 4, depth * 2 + 45), buffer.c_str(), nodeColor);
+	Engine::Get().WriteToBuffer(Vector2(spaceNum * 4 + 20, depth * 2 + 45), buffer.c_str(), nodeColor);
 
 	// 하위 노드 출력.
 	PrintRecursive(node->GetLeft(), depth + 1, spaceNum);
@@ -260,7 +260,7 @@ void RedBlackTreeLevel::PrintRecursive(RBTAnimNode* node, int depth, int spaceCo
 	}
 
 	//Engine::Get().WriteToBuffer(Vector2(depth * 5, spaceNum + 2), buffer.c_str(), nodeColor);
-	Engine::Get().WriteToBuffer(Vector2(spaceNum * 4, depth * 2 + 5), buffer.c_str(), nodeColor);
+	Engine::Get().WriteToBuffer(Vector2(spaceNum * 4 + 20, depth * 2 + 5), buffer.c_str(), nodeColor);
 
 	// 하위 노드 출력.
 	PrintRecursive(node->GetLeftNode(), depth + 1, spaceNum);
