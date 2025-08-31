@@ -85,6 +85,7 @@ private:
 private:
 	// 레드 블랙 트리
 	RedBlackTree* rbt;
+	RBTAnimNode* animTreeRoot = nullptr;
 	
 	CommandType command = CommandType::None;
 

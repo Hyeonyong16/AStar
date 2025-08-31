@@ -49,6 +49,12 @@ RedBlackTree::~RedBlackTree()
 
 	// Nil 노드 삭제.
 	SafeDelete(nil);
+
+	for (RBTNode* node : newNodeManage)
+	{
+		SafeDelete(node);
+	}
+	newNodeManage.clear();
 }
 
 RBTNode* RedBlackTree::CreateNode(int data, NodeColor color)
@@ -546,6 +552,7 @@ RBTNode* RedBlackTree::DeleteRecursive(RBTNode* node, int data, bool& isRed)
 		tempNode->SetLeft(nullptr);
 		tempNode->SetRight(nullptr);
 		tempNode->SetParent(nullptr);
+		newNodeManage.emplace_back(tempNode);
 
 		// 경우의 수1 (자식이 둘 다 없는 경우).
 		if (node->GetLeft() == nil && node->GetRight() == nil)

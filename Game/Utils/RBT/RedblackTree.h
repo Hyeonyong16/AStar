@@ -42,6 +42,7 @@ private:
 	// 팩토리 패턴.
 	RBTNode* CreateNode(int data, NodeColor color);
 
+	std::vector<RBTNode*> newNodeManage;
 	/// <summary>
 	/// 검색 재귀 함수. 
 	/// </summary>

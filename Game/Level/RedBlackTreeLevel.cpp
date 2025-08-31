@@ -156,16 +156,16 @@ void RedBlackTreeLevel::InsertAnim(NodeFunc* func)
 void RedBlackTreeLevel::Print()
 {
 	PrintRecursive(rbt->GetRoot(), 0, 0);
-	RBTAnimNode* root = nullptr;
+	animTreeRoot = nullptr;
 	for (int i = 0; i < animNodes.size(); ++i)
 	{
 		if (animNodes[i]->GetParentNode() == nullptr)
 		{
-			root = animNodes[i];
+			animTreeRoot = animNodes[i];
 		}
 	}
 
-	PrintRecursive(root, 0, 0);
+	PrintRecursive(animTreeRoot, 0, 0);
 	
 }
 
@@ -276,6 +276,9 @@ void RedBlackTreeLevel::PlayAnim()
 		return;
 	}
 
+
+	//RBTAnimNode* tempNode = new RBTAnimNode();
+
 	int i = 0;
 	switch (animQueue[i]->type)
 	{
@@ -323,7 +326,7 @@ void RedBlackTreeLevel::PlayAnim()
 			// 루트 노드라면
 			if (temp->GetParentNode() == nullptr)
 			{
-
+				animTreeRoot = nullptr;
 			}
 
 			else
@@ -346,6 +349,7 @@ void RedBlackTreeLevel::PlayAnim()
 			if (temp->GetParentNode() == nullptr)
 			{
 				temp->SetLeftNode(nullptr);
+				
 			}
 			else
 			{
@@ -353,6 +357,8 @@ void RedBlackTreeLevel::PlayAnim()
 				{
 					temp->GetParentNode()->SetLeftNode(temp->GetRightNode());
 					temp->GetRightNode()->SetParentNode(temp->GetParentNode());
+
+
 					temp->SetRightNode(nullptr);
 				}
 				else
@@ -361,6 +367,12 @@ void RedBlackTreeLevel::PlayAnim()
 					temp->GetRightNode()->SetParentNode(temp->GetParentNode());
 					temp->SetRightNode(nullptr);
 				}
+			}
+
+			if (animTreeRoot == temp)
+			{
+				animTreeRoot = temp->GetRightNode();
+				animTreeRoot->SetParentNode(nullptr);
 			}
 		}
 
@@ -371,6 +383,7 @@ void RedBlackTreeLevel::PlayAnim()
 			// 루트노드인 경우
 			if (temp->GetParentNode() == nullptr)
 			{
+				animTreeRoot = temp;
 				temp->SetRightNode(nullptr);
 			}
 			else
@@ -388,6 +401,13 @@ void RedBlackTreeLevel::PlayAnim()
 					temp->SetRightNode(nullptr);
 				}
 			}
+
+			if (animTreeRoot == temp)
+			{
+				animTreeRoot = temp->GetLeftNode();
+				animTreeRoot->SetParentNode(nullptr);
+			}
+
 		}
 
 		std::vector<RBTAnimNode*>::iterator iter = animNodes.begin();
